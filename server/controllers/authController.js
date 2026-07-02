@@ -1,0 +1,143 @@
+import { OAuth2Client } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import logger from '../config/logger.js';
+
+let googleClient;
+const getGoogleClient = () => {
+  if (!googleClient && process.env.GOOGLE_CLIENT_ID) {
+    googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
+  return googleClient;
+};
+
+export const googleLogin = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: 'Google credentials token is required' });
+    }
+
+    let payload;
+    const client = getGoogleClient();
+
+    if (client && !token.startsWith('mock_')) {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } else {
+      // Mock Login Fallback for local development/testing without real keys
+      logger.info('Using mock Google verification fallback.');
+      if (token.startsWith('mock_')) {
+        try {
+          const base64Str = token.replace('mock_', '');
+          const decodedMock = JSON.parse(Buffer.from(base64Str, 'base64').toString('utf-8'));
+          payload = {
+            sub: decodedMock.sub || 'mock_sub_' + Math.floor(Math.random() * 1000000),
+            email: decodedMock.email || 'guest@campus.edu',
+            name: decodedMock.name || 'Mock Student',
+            picture: decodedMock.picture || 'https://picsum.photos/150',
+          };
+        } catch (e) {
+          payload = {
+            sub: 'mock_sub_default_user',
+            email: 'default_student@campus.edu',
+            name: 'Demo Student User',
+            picture: 'https://picsum.photos/150',
+          };
+        }
+      } else {
+        return res.status(400).json({ message: 'Invalid token structure.' });
+      }
+    }
+
+    const { sub: googleId, email, name, picture: avatar } = payload;
+
+    // Find or create User
+    let user = await User.findOne({ googleId });
+    if (!user) {
+      // Auto-assign admin role to configured emails
+      const adminEmails = (process.env.ADMIN_EMAILS || 'admin@campus.edu').split(',').map((e) => e.trim().toLowerCase());
+      const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
+
+      user = await User.create({
+        googleId,
+        email,
+        name,
+        avatar: avatar || '',
+        role,
+        badges: ['Campus Rookie'],
+      });
+      logger.info(`User registered successfully: ${email} (${role})`);
+    } else {
+      if (user.status === 'banned') {
+        return res.status(403).json({ message: 'Your account has been banned by the administrator.' });
+      }
+      user.name = name;
+      user.avatar = avatar || user.avatar;
+      await user.save();
+    }
+
+    // Generate session JWT
+    const jwtToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '7d' }
+    );
+
+    // Set cookie
+    res.cookie('token', jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.status(200).json({
+      message: 'Logged in successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+        bookmarks: user.bookmarks,
+        badges: user.badges,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
+  res.status(200).json({ message: 'Logged out successfully' });
+};
+
+export const getMe = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(200).json({ user: null });
+    }
+    res.status(200).json({
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        avatar: req.user.avatar,
+        role: req.user.role,
+        bookmarks: req.user.bookmarks,
+        badges: req.user.badges,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

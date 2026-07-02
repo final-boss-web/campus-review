@@ -1,0 +1,41 @@
+{
+  "name": "campus-review-hub-server",
+  "version": "1.0.0",
+  "description": "Backend server for Campus Review Hub",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "mern",
+    "review",
+    "campus"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.2.0",
+    "express-validator": "^7.0.1",
+    "google-auth-library": "^9.9.0",
+    "helmet": "^7.1.0",
+    "imagekit": "^5.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.1",
+    "morgan": "^1.10.0",
+    "socket.io": "^4.7.5",
+    "winston": "^3.13.0",
+    "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

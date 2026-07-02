@@ -1,0 +1,52 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Debug log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Project logs directory
+logs/
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for instrumented code coverage downloads
+lib-cov
+coverage
+*.lcov
+
+# Environment variables / secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test
+.env.production
+# Do NOT ignore .env.example
+!.env.example
+
+# Editor/OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

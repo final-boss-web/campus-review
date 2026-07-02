@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased transition-colors duration-300;
+  }
+  
+  body.dark {
+    @apply bg-[#0b0f19] text-slate-100;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 dark:bg-slate-800/80 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700;
+  }
+}
+
+/* Glassmorphism Classes */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .glass-effect {
+  background: rgba(11, 15, 25, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  @apply bg-white/70 dark:bg-[#0f172a]/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-glass-light dark:shadow-glass-dark rounded-3xl transition-all duration-300;
+}
+
+/* Custom Gradients */
+.gradient-text-neon {
+  background-image: linear-gradient(to right, #a855f7, #2642ff, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  animation: textGradient 4s linear infinite;
+}
+
+.gradient-bg-neon {
+  background-image: linear-gradient(to right, #a855f7, #6366f1, #06b6d4);
+  background-size: 200% auto;
+  animation: textGradient 4s linear infinite;
+}
+
+.gradient-border-neon {
+  position: relative;
+  background: linear-gradient(to right, #a855f7, #06b6d4);
+  padding: 1px;
+  border-radius: 1.5rem;
+}
+
+.gradient-border-neon-inner {
+  @apply rounded-[23px] h-full w-full;
+  background-color: #ffffff;
+}
+
+.dark .gradient-border-neon-inner {
+  background-color: #0f172a;
+}
+
+
+/* Animated Grid Background */
+.bg-grid-pattern {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+}
+
+.dark .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+}
+
+/* Floating Radial Glows */
+.radial-glow-purple {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+}
+
+.radial-glow-blue {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+}
+
+.radial-glow-pink {
+  background: radial-gradient(circle, rgba(244, 63, 94, 0.1) 0%, transparent 70%);
+}
+
