@@ -1,4 +1,7 @@
 import winston from 'winston';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const levels = {
   error: 0,
@@ -61,22 +64,26 @@ const enableFileLogging =
 
 if (enableFileLogging) {
   const logDir = process.env.LOG_DIR || 'logs';
-  transports.push(
-    new winston.transports.File({
-      filename: `${logDir}/error.log`,
-      level: 'error',
-      format: logFormat,
-    }),
-    new winston.transports.File({
-      filename: `${logDir}/combined.log`,
-      format: logFormat,
-    }),
-    new winston.transports.File({
-      filename: `${logDir}/access.log`,
-      level: 'info',
-      format: logFormat,
-    })
-  );
+  try {
+    transports.push(
+      new winston.transports.File({
+        filename: `${logDir}/error.log`,
+        level: 'error',
+        format: logFormat,
+      }),
+      new winston.transports.File({
+        filename: `${logDir}/combined.log`,
+        format: logFormat,
+      }),
+      new winston.transports.File({
+        filename: `${logDir}/access.log`,
+        level: 'info',
+        format: logFormat,
+      })
+    );
+  } catch (err) {
+    console.warn('Winston file transports could not be initialized (possibly a read-only filesystem or permission error):', err.message);
+  }
 }
 
 const logger = winston.createLogger({
