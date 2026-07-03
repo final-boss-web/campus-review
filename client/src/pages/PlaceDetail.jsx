@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { QRCodeSVG } from 'qrcode.react';
 import {
   MapPin,
   Phone,
@@ -25,12 +24,10 @@ import {
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
 import ImageUpload from '../components/ImageUpload.jsx';
-import { openLoginModal } from '../store/authSlice.js';
 
 export const PlaceDetail = () => {
   const { type, id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // Listing details states
@@ -65,6 +62,106 @@ export const PlaceDetail = () => {
   // Share Widget
   const [showShareQR, setShowShareQR] = useState(false);
 
+  // Edit & Photo management states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editPlaceData, setEditPlaceData] = useState(null);
+  const [editError, setEditError] = useState('');
+  const [editSuccess, setEditSuccess] = useState('');
+  const [isAddingPhotos, setIsAddingPhotos] = useState(false);
+  const [newUploadedPhotos, setNewUploadedPhotos] = useState([]);
+  const [savingPhotos, setSavingPhotos] = useState(false);
+
+  useEffect(() => {
+    if (place) {
+      setEditPlaceData({
+        name: place.name || '',
+        address: place.address || '',
+        phone: place.phone || '',
+        description: place.description || '',
+        nearbyDistance: place.nearbyDistance || 0,
+        roomRent: place.roomRent || 0,
+        deposit: place.deposit || 0,
+        ownerName: place.ownerName || '',
+        ac: place.ac || false,
+        nonAc: place.nonAc || false,
+        wifi: place.wifi || false,
+        laundry: place.laundry || false,
+        washing: place.washing || false,
+        parking: place.parking || false,
+        security: place.security || false,
+        water: place.water || false,
+        messAvailable: place.messAvailable || false,
+        monthlyCharges: place.monthlyCharges || 0,
+        dailyCharges: place.dailyCharges || 0,
+        foodTiming: place.foodTiming || '',
+        menu: place.menu || '',
+        veg: place.veg || false,
+        nonVeg: place.nonVeg || false,
+        category: place.category || 'Restaurant & Cafe',
+        openingTime: place.openingTime || '09:00 AM',
+        closingTime: place.closingTime || '09:00 PM',
+        images: place.images || [],
+        menuImages: place.menuImages || [],
+      });
+    }
+  }, [place]);
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditError('');
+    setEditSuccess('');
+    try {
+      const { data } = await api.put(`/places/${type}/${place._id}`, editPlaceData);
+      setPlace(data.place);
+      setEditSuccess('Listing updated successfully!');
+      setTimeout(() => {
+        setIsEditMode(false);
+        setEditSuccess('');
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setEditError(err.response?.data?.message || 'Failed to update listing.');
+    }
+  };
+
+  const handleAddPhotosSubmit = async () => {
+    if (newUploadedPhotos.length === 0) {
+      alert('Please upload at least one image.');
+      return;
+    }
+    setSavingPhotos(true);
+    try {
+      const { data } = await api.post(`/places/${type}/${place._id}/images`, {
+        images: newUploadedPhotos
+      });
+      setPlace({ ...place, images: data.images });
+      setNewUploadedPhotos([]);
+      setIsAddingPhotos(false);
+      alert('Images added to gallery successfully!');
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to add images to gallery.');
+    } finally {
+      setSavingPhotos(false);
+    }
+  };
+
+  const handleDeleteImage = async (fileId) => {
+    if (!window.confirm('Are you sure you want to delete this image?')) return;
+    try {
+      const remainingImages = place.images.filter((img) => img.fileId !== fileId);
+      const { data } = await api.put(`/places/${type}/${place._id}`, {
+        ...place,
+        images: remainingImages
+      });
+      setPlace(data.place);
+      alert('Image deleted successfully.');
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to delete image.');
+    }
+  };
+
   useEffect(() => {
     fetchPlaceDetails();
   }, [type, id]);
@@ -98,7 +195,7 @@ export const PlaceDetail = () => {
 
   const handleInteractionClick = (action) => {
     if (!isAuthenticated) {
-      dispatch(openLoginModal());
+      navigate('/login');
       return false;
     }
     return true;
@@ -230,7 +327,7 @@ export const PlaceDetail = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 sm:px-8 space-y-8 pb-20 relative bg-[#0D0D1A]">
-      <div className="flex justify-start">
+      <div className="flex justify-between items-center">
         <Link
           to="/"
           className="inline-flex items-center space-x-2 text-xs font-black text-white hover:text-[#38BDF8] transition-all duration-200 bg-[#15152E] px-4 py-2.5 rounded-xl border border-[#2A2A3D] shadow-sm hover:border-white"
@@ -238,205 +335,548 @@ export const PlaceDetail = () => {
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </Link>
+        {user?.role === 'admin' && (
+          <button
+            onClick={() => {
+              setIsEditMode(!isEditMode);
+              if (!isEditMode && place) {
+                setEditPlaceData({
+                  name: place.name || '',
+                  address: place.address || '',
+                  phone: place.phone || '',
+                  description: place.description || '',
+                  nearbyDistance: place.nearbyDistance || 0,
+                  roomRent: place.roomRent || 0,
+                  deposit: place.deposit || 0,
+                  ownerName: place.ownerName || '',
+                  monthlyCharges: place.monthlyCharges || 0,
+                  dailyCharges: place.dailyCharges || 0,
+                  foodTiming: place.foodTiming || '',
+                  category: place.category || 'Restaurant & Cafe',
+                  images: place.images || [],
+                  menuImages: place.menuImages || [],
+                });
+              }
+            }}
+            className="px-4 py-2.5 bg-[#38BDF8] hover:bg-white text-black font-black text-xs rounded-xl transition cursor-pointer"
+          >
+            {isEditMode ? 'Cancel Edit' : 'Edit Listing Info'}
+          </button>
+        )}
       </div>
 
       <div className="absolute top-20 right-10 w-[400px] h-[400px] radial-glow-purple rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
-      {/* 1. Header Card */}
-      <div className="bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between gap-6 relative overflow-hidden transition duration-200 hover:border-white hover:shadow-brutal-blue">
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-black uppercase tracking-wider py-1 px-3 bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 rounded-xl">
-              {type} Profile
-            </span>
-            <span className="flex items-center text-xs font-black text-white">
-              <MapPin className="w-3.5 h-3.5 mr-1 text-[#EF4444]" />
-              {place.nearbyDistance} km from Campus
-            </span>
-          </div>
+      {isEditMode && editPlaceData ? (
+        <form onSubmit={handleEditSubmit} className="bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 sm:p-8 space-y-6 animate-fade-in text-white">
+          <h2 className="text-2xl font-black uppercase text-[#38BDF8]">Edit Listing Information</h2>
+          {editError && <div className="p-3.5 text-xs font-black text-white bg-[#EF4444] rounded-xl">{editError}</div>}
+          {editSuccess && <div className="p-3.5 text-xs font-black text-black bg-[#00D68F] rounded-xl">{editSuccess}</div>}
 
-          <h1 className="text-4xl font-black uppercase text-white tracking-tight">{place.name}</h1>
-          
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1.5 bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-xl border border-amber-500/30">
-              <RatingStars rating={place.averageRating} size={15} />
-              <span className="text-sm font-black ml-1">{place.averageRating}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Place Name *</label>
+              <input
+                type="text"
+                required
+                value={editPlaceData.name}
+                onChange={(e) => setEditPlaceData({ ...editPlaceData, name: e.target.value })}
+                className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+              />
             </div>
-            <span className="text-xs font-bold text-slate-400">({place.ratingsCount} verified reviews)</span>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Address Location *</label>
+              <input
+                type="text"
+                required
+                value={editPlaceData.address}
+                onChange={(e) => setEditPlaceData({ ...editPlaceData, address: e.target.value })}
+                className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Contact Phone *</label>
+              <input
+                type="text"
+                required
+                value={editPlaceData.phone}
+                onChange={(e) => setEditPlaceData({ ...editPlaceData, phone: e.target.value })}
+                className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Distance from Gate (km) *</label>
+              <input
+                type="number"
+                step="0.1"
+                required
+                value={editPlaceData.nearbyDistance}
+                onChange={(e) => setEditPlaceData({ ...editPlaceData, nearbyDistance: parseFloat(e.target.value) || 0 })}
+                className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-350">
-            <span className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-[#38BDF8]" /> {place.address}</span>
-            <span className="flex items-center"><Phone className="w-4 h-4 mr-2 text-[#38BDF8]" /> {place.phone}</span>
-            <span className="flex items-center"><UserIcon className="w-4 h-4 mr-2 text-[#38BDF8]" /> Contact: {place.ownerName || place.contact || 'N/A'}</span>
-          </div>
-        </div>
-
-        {/* Dynamic QR Sharing widget */}
-        <div className="flex flex-col items-center justify-center border border-[#2A2A3D] p-4 rounded-2xl bg-[#0D0D1A] max-w-[200px] self-center shadow-sm">
-          <QRCodeSVG value={window.location.href} size={100} level="M" />
-          <span className="text-[9px] text-[#38BDF8] mt-3 font-black tracking-widest uppercase text-center">Scan to Share</span>
-        </div>
-      </div>
-
-      {/* 2. Media Gallery */}
-      {place.images?.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-xl font-black text-white uppercase tracking-tight">Photos & Gallery</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {place.images.map((img, idx) => (
-              <a
-                key={img.fileId}
-                href={img.url}
-                target="_blank"
-                rel="noreferrer"
-                className="group relative rounded-2xl overflow-hidden aspect-video bg-zinc-950 border border-[#2A2A3D] shadow-sm hover:border-white transition duration-150"
-              >
-                <img
-                  src={img.url}
-                  alt={`${place.name} media ${idx + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-                />
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 3. Detailed Specifications Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Specifications */}
-        <div className="lg:col-span-2 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-6 transition duration-200 hover:border-white hover:shadow-brutal-blue">
-          <h3 className="text-xl font-black text-white uppercase tracking-tight">Details & Amenities</h3>
-          
-          <p className="text-xs sm:text-sm text-slate-350 leading-relaxed font-semibold">
-            {place.description || 'No detailed description available for this listing.'}
-          </p>
-
-          {/* Pricing cards */}
-          <div className="grid grid-cols-2 gap-4">
-            {type === 'Hostel' && (
-              <>
-                <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Monthly Room Rent</span>
-                  <p className="text-2xl font-black text-[#38BDF8] mt-1">₹{place.roomRent}</p>
-                </div>
-                <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Refundable Deposit</span>
-                  <p className="text-2xl font-black text-white mt-1">₹{place.deposit}</p>
-                </div>
-              </>
-            )}
-
-            {type === 'Mess' && (
-              <>
-                <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Monthly charges</span>
-                  <p className="text-2xl font-black text-[#38BDF8] mt-1">₹{place.monthlyCharges}</p>
-                </div>
-                <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Daily Meal Price</span>
-                  <p className="text-2xl font-black text-white mt-1">₹{place.dailyCharges}</p>
-                </div>
-              </>
-            )}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Description</label>
+            <textarea
+              value={editPlaceData.description}
+              onChange={(e) => setEditPlaceData({ ...editPlaceData, description: e.target.value })}
+              className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition min-h-[100px]"
+            />
           </div>
 
-          {/* Hostel specific features */}
+          {/* Details based on type */}
           {type === 'Hostel' && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {[
-                { name: 'Air Conditioning', val: place.ac, emoji: '❄️' },
-                { name: 'Room Fan / Cooler', val: place.nonAc, emoji: '💨' },
-                { name: 'High-speed WiFi', val: place.wifi, emoji: '⚡' },
-                { name: 'Laundry Machine', val: place.laundry, emoji: '🧺' },
-                { name: 'Washing Machine', val: place.washing, emoji: '🧴' },
-                { name: 'Bicycle/Bike Parking', val: place.parking, emoji: '🚲' },
-                { name: '24/7 Security Guard', val: place.security, emoji: '🛡️' },
-                { name: 'RO Water Filter', val: place.water, emoji: '🚰' },
-                { name: 'Mess Dining Available', val: place.messAvailable, emoji: '🍽️' },
-              ].map((item) => (
-                <div
-                  key={item.name}
-                  className={`flex items-center space-x-2 text-xs p-3.5 rounded-xl border transition duration-150 font-black ${
-                    item.val
-                      ? 'border-[#38BDF8] bg-[#38BDF8]/5 text-[#38BDF8]'
-                      : 'border-[#2A2A3D] bg-[#0D0D1A] text-slate-500'
-                  }`}
-                >
-                  <Check className={`w-4 h-4 flex-shrink-0 ${item.val ? 'text-[#38BDF8]' : 'text-slate-500'}`} />
-                  <span>{item.name} {item.emoji}</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Room Rent (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  value={editPlaceData.roomRent}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, roomRent: parseFloat(e.target.value) || 0 })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Refundable Deposit (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  value={editPlaceData.deposit}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, deposit: parseFloat(e.target.value) || 0 })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Owner / Manager Name</label>
+                <input
+                  type="text"
+                  value={editPlaceData.ownerName}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, ownerName: e.target.value })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
+              </div>
+
+              {/* Amenities checkboxes */}
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider block">Amenities</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[
+                    { key: 'ac', label: 'Air Conditioning ❄️' },
+                    { key: 'nonAc', label: 'Room Fan / Cooler 💨' },
+                    { key: 'wifi', label: 'High-speed WiFi ⚡' },
+                    { key: 'laundry', label: 'Laundry Machine 🧺' },
+                    { key: 'washing', label: 'Washing Machine 🧴' },
+                    { key: 'parking', label: 'Bicycle/Bike Parking 🚲' },
+                    { key: 'security', label: '24/7 Security Guard 🛡️' },
+                    { key: 'water', label: 'RO Water Filter 🚰' },
+                    { key: 'messAvailable', label: 'Mess Dining Available 🍽️' }
+                  ].map((item) => (
+                    <label key={item.key} className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer bg-[#0D0D1A] border border-[#2A2A3D] p-3 rounded-xl hover:border-white transition">
+                      <input
+                        type="checkbox"
+                        checked={editPlaceData[item.key]}
+                        onChange={(e) => setEditPlaceData({ ...editPlaceData, [item.key]: e.target.checked })}
+                        className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4 h-4"
+                      />
+                      <span className="text-white">{item.label}</span>
+                    </label>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           )}
 
-          {/* Mess specific features */}
           {type === 'Mess' && (
-            <div className="space-y-4">
-              <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
-                <span className="text-[9px] font-black uppercase text-[#38BDF8] tracking-wider">Dining Timings</span>
-                <p className="text-xs font-black text-white">{place.foodTiming}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Monthly Charges (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  value={editPlaceData.monthlyCharges}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, monthlyCharges: parseFloat(e.target.value) || 0 })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
               </div>
-              <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
-                <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Weekly Food Menu</span>
-                <p className="text-xs text-white whitespace-pre-line leading-relaxed font-bold">{place.menu || 'Not updated.'}</p>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Daily Rate (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  value={editPlaceData.dailyCharges}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, dailyCharges: parseFloat(e.target.value) || 0 })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Food Timing</label>
+                <input
+                  type="text"
+                  value={editPlaceData.foodTiming}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, foodTiming: e.target.value })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
+              </div>
+
+              {/* Mess specifics */}
+              <div className="md:col-span-3 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Weekly Menu Details</label>
+                  <textarea
+                    value={editPlaceData.menu}
+                    onChange={(e) => setEditPlaceData({ ...editPlaceData, menu: e.target.value })}
+                    className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition min-h-[80px]"
+                    placeholder="Describe Monday-Sunday menu..."
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer bg-[#0D0D1A] border border-[#2A2A3D] p-3 rounded-xl hover:border-white transition">
+                    <input
+                      type="checkbox"
+                      checked={editPlaceData.veg}
+                      onChange={(e) => setEditPlaceData({ ...editPlaceData, veg: e.target.checked })}
+                      className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4 h-4"
+                    />
+                    <span className="text-white">Veg Only 🥬</span>
+                  </label>
+                  <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer bg-[#0D0D1A] border border-[#2A2A3D] p-3 rounded-xl hover:border-white transition">
+                    <input
+                      type="checkbox"
+                      checked={editPlaceData.nonVeg}
+                      onChange={(e) => setEditPlaceData({ ...editPlaceData, nonVeg: e.target.checked })}
+                      className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4 h-4"
+                    />
+                    <span className="text-white">Non-Veg served 🍗</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Mess menu images */}
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider block">Menu Images / Cards</label>
+                <ImageUpload
+                  images={editPlaceData.menuImages || []}
+                  onChange={(newMenuImgs) => setEditPlaceData({ ...editPlaceData, menuImages: newMenuImgs })}
+                  maxFiles={5}
+                  label="Upload Mess Menu Cards"
+                />
               </div>
             </div>
           )}
 
-          {/* Shop specific features */}
           {type === 'Shop' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
-                <span className="text-[9px] font-black uppercase text-[#38BDF8] tracking-wider">Shop Category</span>
-                <p className="text-xs font-black text-white">{place.category}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Shop Category *</label>
+                <select
+                  value={editPlaceData.category}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, category: e.target.value })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition select-options"
+                >
+                  <option value="Stationery & Photocopy">Stationery & Photocopy</option>
+                  <option value="Book Store">Book Store</option>
+                  <option value="Medical Store">Medical Store</option>
+                  <option value="Restaurant & Cafe">Restaurant & Cafe</option>
+                  <option value="Tea Stall">Tea Stall</option>
+                  <option value="Other Shop">Other Shop</option>
+                </select>
               </div>
-              <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
-                <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Operational Hours</span>
-                <p className="text-xs font-black text-slate-350">{place.openingTime} - {place.closingTime}</p>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Opening Time *</label>
+                <input
+                  type="text"
+                  required
+                  value={editPlaceData.openingTime}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, openingTime: e.target.value })}
+                  placeholder="e.g. 09:00 AM"
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Closing Time *</label>
+                <input
+                  type="text"
+                  required
+                  value={editPlaceData.closingTime}
+                  onChange={(e) => setEditPlaceData({ ...editPlaceData, closingTime: e.target.value })}
+                  placeholder="e.g. 09:00 PM"
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                />
+              </div>
+
+              {/* Shop/Cafe menu images */}
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider block">Menu Images / Catalog Price Lists</label>
+                <ImageUpload
+                  images={editPlaceData.menuImages || []}
+                  onChange={(newMenuImgs) => setEditPlaceData({ ...editPlaceData, menuImages: newMenuImgs })}
+                  maxFiles={5}
+                  label="Upload Shop Menu / Catalog Cards"
+                />
               </div>
             </div>
           )}
 
-          {/* Menu / Catalog Images */}
-          {place.menuImages?.length > 0 && (
-            <div className="space-y-2">
-              <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Menu Cards / Price Lists</span>
-              <div className="flex flex-wrap gap-3">
-                {place.menuImages.map((img, idx) => (
-                  <a
+          {/* Manage Images in Edit Mode */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Manage Listing Photos</label>
+            <ImageUpload
+              images={editPlaceData.images || []}
+              onChange={(newImgs) => setEditPlaceData({ ...editPlaceData, images: newImgs })}
+              maxFiles={10}
+              label="Add or Remove Photos"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="px-6 py-3 bg-[#00D68F] text-black font-black text-xs rounded-xl hover:bg-white transition cursor-pointer"
+          >
+            Save Changes
+          </button>
+        </form>
+      ) : (
+        <>
+          {/* 1. Header Card */}
+          <div className="bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between gap-6 relative overflow-hidden transition duration-200 hover:border-white hover:shadow-brutal-blue">
+            <div className="space-y-4 font-black">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider py-1 px-3 bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 rounded-xl">
+                  {type} Profile
+                </span>
+                <span className="flex items-center text-xs font-black text-white">
+                  <MapPin className="w-3.5 h-3.5 mr-1 text-[#EF4444]" />
+                  {place.nearbyDistance} km from Campus
+                </span>
+              </div>
+
+              <h1 className="text-4xl font-black uppercase text-white tracking-tight">{place.name}</h1>
+              
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-1.5 bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-xl border border-amber-500/30">
+                  <RatingStars rating={place.averageRating} size={15} />
+                  <span className="text-sm font-black ml-1">{place.averageRating}</span>
+                </div>
+                <span className="text-xs font-bold text-slate-400">({place.ratingsCount} verified reviews)</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-350">
+                <span className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-[#38BDF8]" /> {place.address}</span>
+                <span className="flex items-center"><Phone className="w-4 h-4 mr-2 text-[#38BDF8]" /> {place.phone}</span>
+                <span className="flex items-center"><UserIcon className="w-4 h-4 mr-2 text-[#38BDF8]" /> Contact: {place.ownerName || place.contact || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Media Gallery (Uploadable for students/admins & delete-able for admins) */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-black text-white uppercase tracking-tight">Photos & Gallery</h3>
+              {isAuthenticated && (
+                <button
+                  onClick={() => setIsAddingPhotos(!isAddingPhotos)}
+                  className="px-3.5 py-2 bg-[#00D68F] text-black font-black text-xs rounded-xl hover:bg-white transition flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{isAddingPhotos ? 'Cancel' : 'Add Photos'}</span>
+                </button>
+              )}
+            </div>
+
+            {isAddingPhotos && (
+              <div className="bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-5 space-y-4 animate-fade-in">
+                <ImageUpload
+                  images={newUploadedPhotos}
+                  onChange={(newImgs) => setNewUploadedPhotos(newImgs)}
+                  maxFiles={5}
+                  label="Select photos to upload to this gallery (Multiple supported)"
+                />
+                <button
+                  onClick={handleAddPhotosSubmit}
+                  disabled={savingPhotos || newUploadedPhotos.length === 0}
+                  className="px-4 py-2 bg-[#38BDF8] text-black font-black text-xs rounded-xl disabled:bg-slate-800 disabled:text-slate-500 hover:bg-white transition cursor-pointer"
+                >
+                  {savingPhotos ? 'Saving Photos...' : 'Save Photos to Gallery'}
+                </button>
+              </div>
+            )}
+
+            {place.images?.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {place.images.map((img, idx) => (
+                  <div
                     key={img.fileId || idx}
-                    href={img.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group relative w-24 h-24 rounded-xl overflow-hidden border border-[#2A2A3D] hover:border-white transition duration-150"
+                    className="group relative rounded-2xl overflow-hidden aspect-video bg-[#15152E] border border-[#2A2A3D] shadow-sm hover:border-white transition duration-155"
                   >
-                    <img src={img.url} alt="Menu page" className="w-full h-full object-cover" />
-                  </a>
+                    <a
+                      href={img.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full h-full block"
+                    >
+                      <img
+                        src={img.url}
+                        alt={`${place.name} media ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                      />
+                    </a>
+                    {user?.role === 'admin' && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteImage(img.fileId)}
+                        className="absolute top-2 right-2 p-1.5 bg-black/85 hover:bg-[#EF4444] rounded-full text-white transition z-10 opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
+                        title="Delete Image"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
+            ) : (
+              <p className="text-xs text-slate-450 italic">No photos added yet. Feel free to add some!</p>
+            )}
+          </div>
 
-        {/* Sidebar details */}
-        <div className="lg:col-span-1 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-4 h-fit">
-          <h4 className="font-black text-sm tracking-tight text-white uppercase">Location Map</h4>
-          <a
-            href={place.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(place.address)}`}
-            target="_blank"
-            rel="noreferrer"
-            className="block relative rounded-2xl overflow-hidden aspect-video bg-zinc-950 border border-[#2A2A3D] hover:border-white transition duration-150"
-          >
-            <div className="absolute inset-0 bg-[#38BDF8]/5 flex flex-col items-center justify-center p-4 text-center">
-              <MapPin className="w-8 h-8 text-[#38BDF8] animate-bounce" />
-              <span className="text-xs font-black text-white mt-2 uppercase tracking-wider bg-black border border-[#2A2A3D] px-2 py-0.5 rounded">Directions</span>
+          {/* 3. Detailed Specifications Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Specifications */}
+            <div className="lg:col-span-2 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-6 transition duration-200 hover:border-white hover:shadow-brutal-blue">
+              <h3 className="text-xl font-black text-white uppercase tracking-tight">Details & Amenities</h3>
+              
+              <p className="text-xs sm:text-sm text-slate-355 leading-relaxed font-semibold">
+                {place.description || 'No detailed description available for this listing.'}
+              </p>
+
+              {/* Pricing cards */}
+              <div className="grid grid-cols-2 gap-4">
+                {type === 'Hostel' && (
+                  <>
+                    <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Monthly Room Rent</span>
+                      <p className="text-2xl font-black text-[#38BDF8] mt-1">₹{place.roomRent}</p>
+                    </div>
+                    <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Refundable Deposit</span>
+                      <p className="text-2xl font-black text-white mt-1">₹{place.deposit}</p>
+                    </div>
+                  </>
+                )}
+
+                {type === 'Mess' && (
+                  <>
+                    <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Monthly charges</span>
+                      <p className="text-2xl font-black text-[#38BDF8] mt-1">₹{place.monthlyCharges}</p>
+                    </div>
+                    <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Daily Meal Price</span>
+                      <p className="text-2xl font-black text-white mt-1">₹{place.dailyCharges}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Hostel specific features */}
+              {type === 'Hostel' && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {[
+                    { name: 'Air Conditioning', val: place.ac, emoji: '❄️' },
+                    { name: 'Room Fan / Cooler', val: place.nonAc, emoji: '💨' },
+                    { name: 'High-speed WiFi', val: place.wifi, emoji: '⚡' },
+                    { name: 'Laundry Machine', val: place.laundry, emoji: '🧺' },
+                    { name: 'Washing Machine', val: place.washing, emoji: '🧴' },
+                    { name: 'Bicycle/Bike Parking', val: place.parking, emoji: '🚲' },
+                    { name: '24/7 Security Guard', val: place.security, emoji: '🛡️' },
+                    { name: 'RO Water Filter', val: place.water, emoji: '🚰' },
+                    { name: 'Mess Dining Available', val: place.messAvailable, emoji: '🍽️' },
+                  ].map((item) => (
+                    <div
+                      key={item.name}
+                      className={`flex items-center space-x-2 text-xs p-3.5 rounded-xl border transition duration-150 font-black ${
+                        item.val
+                          ? 'border-[#38BDF8] bg-[#38BDF8]/5 text-[#38BDF8]'
+                          : 'border-[#2A2A3D] bg-[#0D0D1A] text-slate-550'
+                      }`}
+                    >
+                      <Check className={`w-4 h-4 flex-shrink-0 ${item.val ? 'text-[#38BDF8]' : 'text-slate-500'}`} />
+                      <span>{item.name} {item.emoji}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Mess specific features */}
+              {type === 'Mess' && (
+                <div className="space-y-4">
+                  <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
+                    <span className="text-[9px] font-black uppercase text-[#38BDF8] tracking-wider">Dining Timings</span>
+                    <p className="text-xs font-black text-white">{place.foodTiming}</p>
+                  </div>
+                  <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Weekly Food Menu</span>
+                    <p className="text-xs text-white whitespace-pre-line leading-relaxed font-bold">{place.menu || 'Not updated.'}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Shop specific features */}
+              {type === 'Shop' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
+                    <span className="text-[9px] font-black uppercase text-[#38BDF8] tracking-wider">Shop Category</span>
+                    <p className="text-xs font-black text-white">{place.category}</p>
+                  </div>
+                  <div className="p-4 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl space-y-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Operational Hours</span>
+                    <p className="text-xs font-black text-slate-350">{place.openingTime} - {place.closingTime}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Menu / Catalog Images */}
+              {place.menuImages?.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Menu Cards / Price Lists</span>
+                  <div className="flex flex-wrap gap-3">
+                    {place.menuImages.map((img, idx) => (
+                      <a
+                        key={img.fileId || idx}
+                        href={img.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group relative w-24 h-24 rounded-xl overflow-hidden border border-[#2A2A3D] hover:border-white transition duration-150"
+                      >
+                        <img src={img.url} alt="Menu page" className="w-full h-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </a>
-        </div>
-      </div>
+
+            {/* Sidebar details */}
+            <div className="lg:col-span-1 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-4 h-fit">
+              <h4 className="font-black text-sm tracking-tight text-white uppercase">Location Map</h4>
+              <a
+                href={place.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(place.address)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="block relative rounded-2xl overflow-hidden aspect-video bg-zinc-950 border border-[#2A2A3D] hover:border-white transition duration-150"
+              >
+                <div className="absolute inset-0 bg-[#38BDF8]/5 flex flex-col items-center justify-center p-4 text-center">
+                  <MapPin className="w-8 h-8 text-[#38BDF8] animate-bounce" />
+                  <span className="text-xs font-black text-white mt-2 uppercase tracking-wider bg-black border border-[#2A2A3D] px-2 py-0.5 rounded">Directions</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 4. Reviews List */}
       <div className="space-y-6">

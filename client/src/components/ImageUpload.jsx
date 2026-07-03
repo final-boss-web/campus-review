@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
+import axios from 'axios';
 import api from '../services/api.js';
 
 export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Images' }) => {
@@ -45,14 +46,28 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
           isMock = true;
         }
 
-        if (isMock || !signatureData || signatureData.publicKey === 'mock_public_key') {
+        const pubKey = signatureData?.publicKey || '';
+        const isPlaceholder = 
+          pubKey === 'mock_public_key' || 
+          pubKey === 'your_imagekit_public_key' || 
+          pubKey.startsWith('your_') || 
+          !pubKey;
+
+        if (isMock || !signatureData || isPlaceholder) {
           // Simulator fallback
           await new Promise((resolve) => setTimeout(resolve, 800)); // simulate network delay
           const mockId = 'mock_ik_' + Math.floor(Math.random() * 1000000);
+          
+          const base64Data = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          });
+
           uploadedImages.push({
-            url: `https://picsum.photos/seed/${mockId}/600/400`,
+            url: base64Data,
             fileId: mockId,
-            thumbnailUrl: `https://picsum.photos/seed/${mockId}/150/100`,
+            thumbnailUrl: base64Data,
           });
         } else {
           // Actual ImageKit direct upload
@@ -92,8 +107,8 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
     }
   };
 
-  const removeImage = (fileId) => {
-    onChange(images.filter((img) => img.fileId !== fileId));
+  const removeImage = (fileIdOrUrl) => {
+    onChange(images.filter((img) => img.fileId !== fileIdOrUrl && img.url !== fileIdOrUrl));
   };
 
   return (
@@ -135,8 +150,8 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
       {/* Previews Grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-5 gap-3 mt-3">
-          {images.map((img) => (
-            <div key={img.fileId} className="relative group rounded-xl overflow-hidden aspect-video border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
+          {images.map((img, idx) => (
+            <div key={img.fileId || img.url || idx} className="relative group rounded-xl overflow-hidden aspect-video border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
               <img
                 src={img.thumbnailUrl || img.url}
                 alt="Upload preview"
@@ -144,7 +159,7 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
               />
               <button
                 type="button"
-                onClick={() => removeImage(img.fileId)}
+                onClick={() => removeImage(img.fileId || img.url)}
                 className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-red-600 rounded-full text-white transition opacity-0 group-hover:opacity-100"
               >
                 <X className="w-3 h-3" />

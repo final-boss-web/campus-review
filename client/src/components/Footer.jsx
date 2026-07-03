@@ -71,8 +71,13 @@ export const Footer = () => {
                 </Link>
               </li>
               <li className="flex items-center space-x-2">
-                <HelpCircle className="w-4 h-4 text-slate-400" />
-                <span>support@campushub.com</span>
+                <HelpCircle className="w-4 h-4 text-[#38BDF8]" />
+                <a href="mailto:studentcodercampus@gmail.com" className="hover:text-white transition">
+                  studentcodercampus@gmail.com
+                </a>
+              </li>
+              <li className="text-[10px] text-slate-400 leading-normal">
+                For promotions, feedback, or general info, contact us at the email above.
               </li>
             </ul>
           </div>

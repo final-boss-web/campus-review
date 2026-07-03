@@ -12,7 +12,6 @@ import api from './services/api.js';
 // Components & Layouts
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
-import LoginModal from './components/LoginModal.jsx';
 
 // Pages
 import Home from './pages/Home.jsx';
@@ -21,6 +20,10 @@ import PlaceDetail from './pages/PlaceDetail.jsx';
 import ScamAlerts from './pages/ScamAlerts.jsx';
 import Profile from './pages/Profile.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+import VerifyRegistration from './pages/VerifyRegistration.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
 import { useActivityTracker } from './hooks/useActivityTracker.js';
 
 const queryClient = new QueryClient();
@@ -92,11 +95,14 @@ const MainAppContent = () => {
               <Route path="/scams" element={<ScamAlerts />} />
               <Route path="/profile/:id" element={<Profile />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify-registration" element={<VerifyRegistration />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
             </Routes>
           </main>
         </div>
         <Footer />
-        <LoginModal />
       </div>
     </Router>
   );

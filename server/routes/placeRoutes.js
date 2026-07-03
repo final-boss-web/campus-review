@@ -7,6 +7,7 @@ import {
   updatePlace,
   deletePlace,
   approvePlace,
+  addPlaceImages,
 } from '../controllers/placeController.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
@@ -25,6 +26,7 @@ router.get('/:type/:id', getPlaceDetail);
 
 router.post('/', protect, adminOnly, placeValidationRules, validateRequest, createPlace);
 router.put('/:type/:id', protect, adminOnly, updatePlace);
+router.post('/:type/:id/images', protect, addPlaceImages);
 router.delete('/:type/:id', protect, adminOnly, deletePlace);
 router.put('/:type/:id/approve', protect, adminOnly, approvePlace);
 

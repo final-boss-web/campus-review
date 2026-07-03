@@ -7,6 +7,9 @@ import {
   login,
   forgotPassword,
   resetPassword,
+  verifyRegistration,
+  verifyResetOTP,
+  resendOTP,
 } from '../controllers/authController.js';
 import { protect, optionalAuth } from '../middleware/auth.js';
 
@@ -16,7 +19,10 @@ router.post('/google', googleLogin);
 router.post('/register', register);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-otp', verifyResetOTP);
 router.post('/reset-password', resetPassword);
+router.post('/verify-registration', verifyRegistration);
+router.post('/resend-otp', resendOTP);
 router.post('/logout', logout);
 router.get('/me', optionalAuth, getMe);
 

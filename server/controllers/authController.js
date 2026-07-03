@@ -7,8 +7,11 @@ import { sendOTPEmail } from '../utils/mailer.js';
 
 let googleClient;
 const getGoogleClient = () => {
-  if (!googleClient && process.env.GOOGLE_CLIENT_ID) {
-    googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  if (!googleClient && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    googleClient = new OAuth2Client({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+    });
   }
   return googleClient;
 };
@@ -60,19 +63,33 @@ export const googleLogin = async (req, res, next) => {
     // Find or create User
     let user = await User.findOne({ googleId });
     if (!user) {
-      // Auto-assign admin role to configured emails
-      const adminEmails = (process.env.ADMIN_EMAILS || 'admin@campus.edu').split(',').map((e) => e.trim().toLowerCase());
-      const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
+      // Check if user with same email already exists (e.g. registered with password)
+      user = await User.findOne({ email: email.toLowerCase() });
+      if (user) {
+        // Link Google ID to existing account
+        user.googleId = googleId;
+        user.isVerified = true;
+        if (!user.avatar) {
+          user.avatar = avatar || '';
+        }
+        await user.save();
+        logger.info(`Linked existing user email ${email} with Google ID: ${googleId}`);
+      } else {
+        // Auto-assign admin role to configured emails
+        const adminEmails = (process.env.ADMIN_EMAILS || 'admin@campus.edu').split(',').map((e) => e.trim().toLowerCase());
+        const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
 
-      user = await User.create({
-        googleId,
-        email,
-        name,
-        avatar: avatar || '',
-        role,
-        badges: ['Campus Rookie'],
-      });
-      logger.info(`User registered successfully: ${email} (${role})`);
+        user = await User.create({
+          googleId,
+          email: email.toLowerCase(),
+          name,
+          avatar: avatar || '',
+          role,
+          badges: ['Campus Rookie'],
+          isVerified: true,
+        });
+        logger.info(`User registered successfully: ${email} (${role})`);
+      }
     } else {
       if (user.status === 'banned') {
         return res.status(403).json({ message: 'Your account has been banned by the administrator.' });
@@ -153,12 +170,31 @@ export const register = async (req, res, next) => {
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return res.status(400).json({ message: 'User with this email already exists' });
+      if (existingUser.isVerified) {
+        return res.status(400).json({ message: 'User with this email already exists' });
+      }
+
+      // Update unverified user registration details and resend OTP
+      existingUser.name = name;
+      existingUser.password = await bcrypt.hash(password, 10);
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      existingUser.otp = otp;
+      existingUser.otpExpiry = Date.now() + 15 * 60 * 1000;
+      await existingUser.save();
+
+      await sendOTPEmail(existingUser.email, otp);
+      return res.status(200).json({
+        message: 'Registration OTP sent to email. Please verify.',
+        email: existingUser.email,
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const adminEmails = (process.env.ADMIN_EMAILS || 'admin@campus.edu').split(',').map((e) => e.trim().toLowerCase());
     const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = Date.now() + 15 * 60 * 1000;
 
     const user = await User.create({
       name,
@@ -166,32 +202,16 @@ export const register = async (req, res, next) => {
       password: hashedPassword,
       role,
       badges: ['Campus Rookie'],
+      isVerified: false,
+      otp,
+      otpExpiry,
     });
 
-    const jwtToken = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '7d' }
-    );
-
-    res.cookie('token', jwtToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    await sendOTPEmail(user.email, otp);
 
     res.status(201).json({
-      message: 'Account registered successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        role: user.role,
-        bookmarks: user.bookmarks,
-        badges: user.badges,
-      },
+      message: 'Account registered successfully! Verification OTP has been sent to your email.',
+      email: user.email,
     });
   } catch (error) {
     next(error);
@@ -212,6 +232,14 @@ export const login = async (req, res, next) => {
 
     if (user.status === 'banned') {
       return res.status(403).json({ message: 'Your account has been banned by the administrator.' });
+    }
+
+    if (user.isVerified === false) {
+      return res.status(400).json({
+        message: 'Please verify your email OTP first before logging in.',
+        needsVerification: true,
+        email: user.email
+      });
     }
 
     if (!user.password) {
@@ -270,6 +298,7 @@ export const forgotPassword = async (req, res, next) => {
 
     user.otp = otp;
     user.otpExpiry = otpExpiry;
+    user.isResetOtpVerified = false;
     await user.save();
 
     await sendOTPEmail(user.email, otp);
@@ -282,9 +311,97 @@ export const forgotPassword = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
   try {
-    const { email, otp, password } = req.body;
-    if (!email || !otp || !password) {
-      return res.status(400).json({ message: 'Email, OTP, and password are required' });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(400).json({ message: 'No account linked with this email' });
+    }
+
+    if (!user.isResetOtpVerified || !user.otpExpiry || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: 'Session expired or OTP not verified. Please verify OTP first.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    user.isResetOtpVerified = false;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully. Please login with your new password.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyRegistration = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(400).json({ message: 'No registered user found with this email' });
+    }
+
+    if (user.isVerified) {
+      return res.status(200).json({ message: 'Email is already verified.' });
+    }
+
+    if (!user.otp || !user.otpExpiry || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: 'OTP has expired. Please request a new registration.' });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP code.' });
+    }
+
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+
+    const jwtToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('token', jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      message: 'Email verified successfully! Welcome to Campus Hub.',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+        bookmarks: user.bookmarks,
+        badges: user.badges,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyResetOTP = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -293,20 +410,52 @@ export const resetPassword = async (req, res, next) => {
     }
 
     if (!user.otp || !user.otpExpiry || user.otpExpiry < Date.now()) {
-      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+      return res.status(400).json({ message: 'OTP has expired. Please request a new code.' });
     }
 
     if (user.otp !== otp) {
       return res.status(400).json({ message: 'Invalid OTP code.' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
-    user.otp = undefined;
-    user.otpExpiry = undefined;
+    user.isResetOtpVerified = true;
+    user.otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes to enter new password
     await user.save();
 
-    res.status(200).json({ message: 'Password reset successfully. Please login with your new password.' });
+    res.status(200).json({ message: 'OTP verified successfully. Please enter your new password.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendOTP = async (req, res, next) => {
+  try {
+    const { email, type } = req.body; // type: 'register' or 'forgot'
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(400).json({ message: 'No user found with this email' });
+    }
+
+    if (type === 'register' && user.isVerified) {
+      return res.status(400).json({ message: 'This email is already verified.' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = Date.now() + 15 * 60 * 1000;
+
+    user.otp = otp;
+    user.otpExpiry = otpExpiry;
+    if (type === 'forgot') {
+      user.isResetOtpVerified = false;
+    }
+    await user.save();
+
+    await sendOTPEmail(user.email, otp);
+
+    res.status(200).json({ message: 'A new verification OTP has been sent to your email.' });
   } catch (error) {
     next(error);
   }

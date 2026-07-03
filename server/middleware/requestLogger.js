@@ -109,7 +109,7 @@ export const requestLogger = (req, res, next) => {
       } else if (status >= 400) {
         logger.warn(logMessage);
       } else {
-        logger.info(logMessage);
+        // logger.info(logMessage);
       }
     }
 

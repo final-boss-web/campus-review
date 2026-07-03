@@ -43,16 +43,16 @@ export const io = new Server(server, {
 
 // Socket.io connection logic
 io.on('connection', (socket) => {
-  logger.info(`Socket connected: ${socket.id}`);
+  // logger.info(`Socket connected: ${socket.id}`);
 
   // User joins a room named after their UserId for targeted notifications
   socket.on('join_room', (userId) => {
     socket.join(userId);
-    logger.info(`Socket ${socket.id} joined user room: ${userId}`);
+    // logger.info(`Socket ${socket.id} joined user room: ${userId}`);
   });
 
   socket.on('disconnect', () => {
-    logger.info(`Socket disconnected: ${socket.id}`);
+    // logger.info(`Socket disconnected: ${socket.id}`);
   });
 });
 
@@ -84,8 +84,8 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(express.json({ limit: '10kb' })); // limit body size
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '10mb' })); // limit body size for base64 uploads
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Sanitize inputs for NoSQL injection
 app.use(mongoSanitize());

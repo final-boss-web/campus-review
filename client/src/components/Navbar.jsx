@@ -15,7 +15,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { toggleTheme } from '../store/themeSlice.js';
-import { openLoginModal, logoutUser, setUser } from '../store/authSlice.js';
+import { logoutUser, setUser } from '../store/authSlice.js';
 import api from '../services/api.js';
 import useSocket from '../hooks/useSocket.js';
 
@@ -256,8 +256,8 @@ export const Navbar = () => {
             </div>
           ) : (
             <button
-              onClick={() => dispatch(openLoginModal())}
-              className="py-2 px-5 rounded-xl text-xs font-black text-black bg-[#00D68F] border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#FFFFFF] transition duration-150"
+              onClick={() => navigate('/login')}
+              className="py-2 px-5 rounded-xl text-xs font-black text-black bg-[#00D68F] border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#FFFFFF] transition duration-150 cursor-pointer"
             >
               Sign In
             </button>

@@ -326,3 +326,37 @@ export const approvePlace = async (req, res, next) => {
     next(error);
   }
 };
+
+export const addPlaceImages = async (req, res, next) => {
+  try {
+    const { type, id } = req.params;
+    const { images } = req.body; // Array of { url, fileId, thumbnailUrl }
+
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ message: 'No images provided.' });
+    }
+
+    const Model = getModelByType(type);
+    if (!Model) {
+      return res.status(400).json({ message: 'Invalid place type specified.' });
+    }
+
+    const place = await findPlaceByIdOrSlug(Model, id);
+    if (!place) {
+      return res.status(404).json({ message: 'Place not found.' });
+    }
+
+    // Append new images to the existing images array
+    place.images = [...(place.images || []), ...images];
+    const updatedPlace = await place.save();
+
+    logger.info(`Added ${images.length} images to ${place.name} by ${req.user.email}`);
+
+    res.status(200).json({
+      message: 'Images added successfully.',
+      images: updatedPlace.images
+    });
+  } catch (error) {
+    next(error);
+  }
+};

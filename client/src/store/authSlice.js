@@ -3,7 +3,6 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoginModalOpen: false,
   loading: true,
 };
 
@@ -24,12 +23,6 @@ export const authSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
-    openLoginModal: (state) => {
-      state.isLoginModalOpen = true;
-    },
-    closeLoginModal: (state) => {
-      state.isLoginModalOpen = false;
-    },
     updateBookmarks: (state, action) => {
       if (state.user) {
         state.user.bookmarks = action.payload;
@@ -47,8 +40,6 @@ export const {
   setUser,
   logoutUser,
   setLoading,
-  openLoginModal,
-  closeLoginModal,
   updateBookmarks,
   updateBadges,
 } = authSlice.actions;

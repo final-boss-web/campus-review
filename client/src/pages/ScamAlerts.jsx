@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   Search,
@@ -14,10 +14,9 @@ import {
 } from 'lucide-react';
 import api from '../services/api.js';
 import ImageUpload from '../components/ImageUpload.jsx';
-import { openLoginModal } from '../store/authSlice.js';
 
 export const ScamAlerts = () => {
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // Scams feed state
@@ -64,7 +63,7 @@ export const ScamAlerts = () => {
 
   const handleReportButtonClick = () => {
     if (!isAuthenticated) {
-      dispatch(openLoginModal());
+      navigate('/login');
     } else {
       setIsReportModalOpen(true);
     }

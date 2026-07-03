@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   Filter,
   Plus,
@@ -18,10 +18,9 @@ import {
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
 import ImageUpload from '../components/ImageUpload.jsx';
-import { openLoginModal } from '../store/authSlice.js';
 
 export const Search = () => {
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -135,7 +134,7 @@ export const Search = () => {
 
   const handleAddButtonClick = () => {
     if (!isAuthenticated) {
-      dispatch(openLoginModal());
+      navigate('/login');
     } else {
       setIsAddModalOpen(true);
     }

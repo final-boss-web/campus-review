@@ -6,9 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "seed": "node scripts/seed.js",
-    "clear": "node scripts/clear.js"
+    "dev": "nodemon index.js"
   },
   "keywords": [
     "mern",
