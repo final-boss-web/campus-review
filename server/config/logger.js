@@ -49,9 +49,17 @@ const transports = [
   }),
 ];
 
+// Check if running in serverless environments (AWS Lambda, Vercel, etc.) where filesystems are read-only
+const isServerless = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
 // Write to files in development environment or when explicitly requested,
 // to avoid ENOENT/read-only filesystem errors in serverless/production hosting
-if (process.env.NODE_ENV === 'development' || process.env.ENABLE_FILE_LOGGING === 'true') {
+const enableFileLogging = 
+  (process.env.NODE_ENV === 'development' || process.env.ENABLE_FILE_LOGGING === 'true') &&
+  process.env.DISABLE_FILE_LOGGING !== 'true' &&
+  !isServerless;
+
+if (enableFileLogging) {
   const logDir = process.env.LOG_DIR || 'logs';
   transports.push(
     new winston.transports.File({
