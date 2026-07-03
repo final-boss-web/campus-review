@@ -21,15 +21,47 @@ import RatingStars from '../components/RatingStars.jsx';
 export const Home = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
   
   // Data showcases
-  const [stats, setStats] = useState({ hostelsCount: 0, shopsCount: 0, messesCount: 0 });
   const [topHostels, setTopHostels] = useState([]);
-  const [topShops, setTopShops] = useState([]);
   const [topMesses, setTopMesses] = useState([]);
+  const [topShops, setTopShops] = useState([]);
   const [scamAlerts, setScamAlerts] = useState([]);
   const [recentReviews, setRecentReviews] = useState([]);
+
+  // Animated Typing Placeholder
+  const placeholders = [
+    "Search Hostels, PG, Mess, Cafes, Laundry by name...",
+    "Search hostels near Gate 1...",
+    "Search pure veg messes...",
+    "Search stationery photocopy shops..."
+  ];
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [currentPlaceholder, setCurrentPlaceholder] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [charIndex, setCharIndex] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    const activeString = placeholders[placeholderIndex];
+    if (!isDeleting && charIndex < activeString.length) {
+      timer = setTimeout(() => {
+        setCurrentPlaceholder((prev) => prev + activeString[charIndex]);
+        setCharIndex((prev) => prev + 1);
+      }, 60);
+    } else if (isDeleting && charIndex > 0) {
+      timer = setTimeout(() => {
+        setCurrentPlaceholder((prev) => prev.slice(0, -1));
+        setCharIndex((prev) => prev - 1);
+      }, 30);
+    } else if (!isDeleting && charIndex === activeString.length) {
+      timer = setTimeout(() => setIsDeleting(true), 1500);
+    } else if (isDeleting && charIndex === 0) {
+      setIsDeleting(false);
+      setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
+    }
+    return () => clearTimeout(timer);
+  }, [charIndex, isDeleting, placeholderIndex]);
 
   useEffect(() => {
     fetchHomepageData();
@@ -37,7 +69,6 @@ export const Home = () => {
 
   const fetchHomepageData = async () => {
     try {
-      // Fetch approved places
       const [hostelsRes, messesRes, shopsRes, scamsRes] = await Promise.all([
         api.get('/places?type=Hostel'),
         api.get('/places?type=Mess'),
@@ -45,15 +76,11 @@ export const Home = () => {
         api.get('/scams?verifiedOnly=true'),
       ]);
 
-      // Top rated filters
       setTopHostels(hostelsRes.data.slice(0, 3));
       setTopMesses(messesRes.data.slice(0, 3));
       setTopShops(shopsRes.data.slice(0, 3));
-
-      // Scam alerts
       setScamAlerts(scamsRes.data.slice(0, 3));
 
-      // Fetch recent reviews directly from the new lightweight public route
       const { data: recentRes } = await api.get('/reviews/recent').catch(() => ({ data: [] }));
       setRecentReviews(recentRes || []);
     } catch (err) {
@@ -69,63 +96,62 @@ export const Home = () => {
   };
 
   const categories = [
-    { name: 'Hostels & PGs', type: 'Hostel', icon: HomeIcon, color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
-    { name: 'Messes', type: 'Mess', icon: Utensils, color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
-    { name: 'Stationery & Photocopy', type: 'Shop', category: 'Stationery & Photocopy', icon: ShoppingBag, color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-    { name: 'Restaurants & Cafes', type: 'Shop', category: 'Restaurant & Cafe', icon: Utensils, color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+    { name: 'Hostels & PGs', type: 'Hostel', icon: HomeIcon, color: 'bg-[#38BDF8]/10 border border-[#38BDF8]/25 text-[#38BDF8]' },
+    { name: 'Messes', type: 'Mess', icon: Utensils, color: 'bg-[#38BDF8]/10 border border-[#38BDF8]/25 text-[#38BDF8]' },
+    { name: 'Stationery & Books', type: 'Shop', category: 'Stationery & Photocopy', icon: ShoppingBag, color: 'bg-white/5 border border-white/10 text-white' },
+    { name: 'Restaurants & Cafes', type: 'Shop', category: 'Restaurant & Cafe', icon: Utensils, color: 'bg-white/5 border border-white/10 text-white' },
   ];
 
   return (
-    <div className="space-y-16 pb-20 relative overflow-hidden">
+    <div className="space-y-16 pb-24 relative overflow-hidden bg-[#0D0D1A]">
       {/* Decorative Glows */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] radial-glow-purple rounded-full blur-3xl -z-10 pointer-events-none"></div>
       <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] radial-glow-blue rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       {/* 1. Hero Section */}
-      <header className="relative py-24 bg-slate-950 text-white rounded-b-[40px] overflow-hidden bg-grid-pattern border-b border-slate-800/50 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyber-purple/20 via-slate-950 to-cyber-blue/20"></div>
-        <div className="relative max-w-5xl mx-auto px-4 text-center space-y-8">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-black bg-gradient-to-r from-cyber-purple/10 to-cyber-blue/10 text-cyber-cyan border border-cyber-cyan/30 shadow-glow-blue animate-pulse-glow">
-            <span>🎓</span> <span>Campus Review Hub</span>
+      <header className="relative py-28 bg-[#0D0D1A] text-white rounded-b-[48px] overflow-hidden bg-grid-pattern border-b border-[#2A2A3D] shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/20 via-[#0D0D1A] to-sky-950/20"></div>
+        <div className="relative max-w-5xl mx-auto px-6 text-center space-y-8">
+          <div className="inline-flex items-center space-x-2 px-4.5 py-2 rounded-xl text-xs font-black bg-[#15152E] text-[#38BDF8] border border-[#2A2A3D]">
+            <span>🎓</span> <span className="tracking-wider">CAMPUS REVIEW HUB</span>
           </div>
 
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight leading-tight font-sans">
-            Find the Best Near <br className="sm:hidden" />
-            <span className="gradient-text-neon bg-gradient-to-r from-cyber-purple via-[#8b5cf6] to-cyber-blue">Your College</span>
+          <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-tight text-white uppercase">
+            Find the Best Near <br />
+            <span className="gradient-text-neon">Your College</span>
           </h1>
 
-          <p className="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto font-sans leading-relaxed">
-            Real student reviews of PGs, Hostels, Messes, Cafes, and photocopy shops. <br />
-            No broker cap 🧢, just 100% verified student experiences.
+          <p className="text-sm sm:text-base text-slate-355 max-w-xl mx-auto leading-relaxed font-semibold">
+            Real student reviews of PGs, Hostels, Messes, Cafes, and photocopy shops. No broker cap 🧢, just 100% verified student experiences.
           </p>
 
-          {/* Search bar widget */}
-          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex items-center bg-white/95 dark:bg-slate-900/90 p-2 rounded-2xl shadow-2xl border border-slate-200/55 dark:border-slate-800/80 backdrop-blur-md focus-within:ring-2 focus-within:ring-cyber-purple/55 transition-all duration-300">
-            <Search className="w-6 h-6 text-slate-400 ml-3" />
+          {/* Search bar widget - Refined Neubrutalist style */}
+          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex items-center bg-[#15152E] p-2.5 rounded-2xl border border-[#2A2A3D] focus-within:border-white focus-within:-translate-x-0.5 focus-within:-translate-y-0.5 focus-within:shadow-brutal-blue transition-all duration-200">
+            <Search className="w-5.5 h-5.5 text-[#38BDF8] ml-3 flex-shrink-0" />
             <input
               type="text"
-              placeholder="Search Hostels, PG, Mess, Cafes, Laundry by name..."
+              placeholder={currentPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm py-2 px-3"
+              className="flex-grow w-full bg-transparent border-none focus:outline-none focus:ring-0 text-white placeholder-slate-500 text-sm py-2 px-3 font-semibold"
             />
             <button
               type="submit"
-              className="py-3 px-6 rounded-xl font-bold text-white gradient-bg-neon hover:opacity-90 shadow-md transition duration-200 text-sm"
+              className="py-3 px-8 rounded-xl font-black text-black bg-[#00D68F] border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#FFFFFF] transition duration-150 text-sm"
             >
               Search
             </button>
           </form>
 
-          {/* Gen-Z Badges */}
-          <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-black bg-cyber-purple/10 text-cyber-purple border border-cyber-purple/20 shadow-glow-purple">
+          {/* Gen-Z Badges - Mapped to Blue color story */}
+          <div className="flex flex-wrap justify-center gap-4 pt-4">
+            <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-black bg-[#38BDF8]/5 text-[#38BDF8] border border-[#38BDF8]/30 tracking-wider hover:-translate-y-0.5 transition duration-150">
               No Cap 🧢
             </span>
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-black bg-cyber-blue/10 text-cyber-cyan border border-cyber-blue/20 shadow-glow-blue">
-              Verified Student Reviews ✅
+            <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-black bg-[#38BDF8]/5 text-[#38BDF8] border border-[#38BDF8]/30 tracking-wider hover:-translate-y-0.5 transition duration-150">
+              Verified Reviews ✅
             </span>
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-black bg-cyber-pink/10 text-cyber-pink border border-cyber-pink/20 shadow-glow-pink">
+            <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-black bg-[#38BDF8]/5 text-[#38BDF8] border border-[#38BDF8]/30 tracking-wider hover:-translate-y-0.5 transition duration-150">
               Direct Contact 🚫 Brokerage
             </span>
           </div>
@@ -133,10 +159,8 @@ export const Home = () => {
       </header>
 
       {/* 2. Categories Section */}
-      <section className="max-w-7xl mx-auto px-4 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-extrabold font-sans tracking-tight">Explore Categories</h2>
-        </div>
+      <section className="max-w-7xl mx-auto px-6 space-y-6">
+        <h2 className="text-3xl font-black tracking-tight text-white uppercase">Explore Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {categories.map((cat) => {
             const query = cat.category 
@@ -146,12 +170,12 @@ export const Home = () => {
               <Link
                 key={cat.name}
                 to={`/search?${query}`}
-                className="flex flex-col items-center justify-center p-6 glass-card hover:-translate-y-2 hover:shadow-lg dark:hover:border-cyber-purple/30 group duration-300"
+                className="flex flex-col items-center justify-center p-8 bg-[#15152E] border border-[#2A2A3D] rounded-2xl transition duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue group"
               >
-                <div className={`flex items-center justify-center w-14 h-14 rounded-2xl mb-3 ${cat.color} group-hover:scale-110 transition duration-300`}>
-                  <cat.icon className="w-6 h-6" />
+                <div className={`flex items-center justify-center w-16 h-16 rounded-xl mb-4 ${cat.color} group-hover:scale-105 transition duration-200 shadow-sm`}>
+                  <cat.icon className="w-7 h-7" />
                 </div>
-                <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 text-center">
+                <span className="text-base font-black text-white text-center">
                   {cat.name}
                 </span>
               </Link>
@@ -160,83 +184,85 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* 3. Scam Alerts Ticker */}
+      {/* 3. Scam Alerts Ticker - Neubrutalist Red Alert */}
       {scamAlerts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4">
-          <div className="bg-red-500/5 dark:bg-red-950/20 border-2 border-red-500/30 rounded-[32px] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-glow-pink">
-            <div className="flex items-start space-x-4">
-              <div className="p-3.5 bg-gradient-to-br from-red-500 to-cyber-pink text-white rounded-2xl shadow-lg shadow-red-500/20 animate-pulse-glow">
+        <section className="max-w-7xl mx-auto px-6">
+          <div className="bg-[#15152E] border border-[#EF4444] rounded-[32px] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-brutal-red hover:-translate-x-1 hover:-translate-y-1 transition duration-300">
+            <div className="flex items-start space-x-5">
+              <div className="p-4 bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/30 rounded-2xl">
                 <AlertOctagon className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <span className="text-xs font-black text-cyber-pink uppercase tracking-widest flex items-center">
-                  <ShieldCheck className="w-4 h-4 mr-1" /> Alert: Scam Patrol
+                <span className="text-xs font-black text-[#EF4444] uppercase tracking-widest flex items-center bg-[#EF4444]/10 px-2.5 py-1 rounded border border-[#EF4444]/30 w-fit">
+                  ⚠️ Alert: SCAM PATROL
                 </span>
-                <h3 className="text-2xl font-black font-sans tracking-tight text-slate-900 dark:text-red-100">Beware of Fake PGs/Hostels</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Don't send advance UPI token deposits before visiting the property in person!
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Beware of Fake PGs & Hostels</h3>
+                <p className="text-sm text-slate-305 font-bold">
+                  Never send advance UPI token deposits before visiting the property in person!
                 </p>
               </div>
             </div>
             <Link
               to="/scams"
-              className="flex items-center space-x-2 py-3 px-6 rounded-2xl font-bold text-white bg-gradient-to-r from-red-600 to-cyber-pink hover:opacity-90 transition shadow-md shadow-red-500/10 text-sm whitespace-nowrap"
+              className="flex items-center space-x-2 py-3.5 px-7 rounded-xl font-black text-white bg-[#EF4444] border border-[#EF4444] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#FFFFFF] transition duration-150 text-xs"
             >
               <span>View Scam Alerts</span>
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4.5 h-4.5" />
             </Link>
           </div>
         </section>
       )}
 
       {/* 4. Showcase: Top Rated Hostels */}
-      <section className="max-w-7xl mx-auto px-4 space-y-6">
+      <section className="max-w-7xl mx-auto px-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-3xl font-extrabold font-sans tracking-tight">Top Rated Student Hostels</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Student reviews verified for safety, WiFi, laundry, and rent refunding</p>
+            <h2 className="text-3xl font-black tracking-tight text-white uppercase">Top Rated Hostels</h2>
+            <p className="text-xs text-slate-400 font-bold">Verified for safety, WiFi speed, cleanliness, and security refunds</p>
           </div>
-          <Link to="/search?type=Hostel" className="text-sm text-cyber-purple dark:text-cyber-cyan font-bold hover:underline flex items-center">
+          <Link to="/search?type=Hostel" className="text-xs text-[#38BDF8] font-black hover:underline flex items-center space-x-0.5">
             <span>View All</span>
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4.5 h-4.5" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {topHostels.map((hostel) => (
             <Link
               key={hostel._id}
               to={`/place/Hostel/${hostel.slug || hostel._id}`}
-              className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg dark:hover:border-cyber-purple/20"
+              className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
             >
-              <div className="relative aspect-video bg-slate-100 dark:bg-slate-950 overflow-hidden">
-                <img
-                  src={hostel.images[0]?.url || 'https://picsum.photos/600/400'}
-                  alt={hostel.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                />
-                <span className="absolute top-3 left-3 py-1 px-3 bg-slate-900/90 dark:bg-slate-950/90 text-xs font-black text-cyber-cyan rounded-full border border-cyber-cyan/30 shadow-md">
-                  ₹{hostel.roomRent}/mo
-                </span>
-                <span className="absolute bottom-3 right-3 py-1 px-2.5 bg-gradient-to-r from-cyber-purple to-brand-600 text-white text-[10px] font-black rounded-full shadow-md">
-                  {hostel.nearbyDistance} km away
-                </span>
+              <div>
+                <div className="relative aspect-video bg-zinc-955 border-b border-[#2A2A3D] overflow-hidden">
+                  <img
+                    src={hostel.images[0]?.url || 'https://picsum.photos/600/400'}
+                    alt={hostel.name}
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                  />
+                  <span className="absolute top-3 left-3 py-1.5 px-3 bg-black/85 border border-[#2A2A3D] text-[11px] font-black text-[#38BDF8] rounded-xl">
+                    ₹{hostel.roomRent}/mo
+                  </span>
+                  <span className="absolute bottom-3 right-3 py-1.5 px-3 bg-[#15152E] border border-[#2A2A3D] text-white text-[9px] font-black rounded-xl">
+                    {hostel.nearbyDistance} km away
+                  </span>
+                </div>
+                <div className="p-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <RatingStars rating={hostel.averageRating} size={13} />
+                    <span className="text-[10px] font-black text-slate-400">({hostel.ratingsCount} reviews)</span>
+                  </div>
+                  <h3 className="font-black text-xl truncate text-white group-hover:text-[#38BDF8] transition duration-150">
+                    {hostel.name}
+                  </h3>
+                  <p className="text-xs text-slate-300 font-semibold line-clamp-2 leading-relaxed">
+                    {hostel.description}
+                  </p>
+                </div>
               </div>
-              <div className="p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <RatingStars rating={hostel.averageRating} size={14} />
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({hostel.ratingsCount} reviews)</span>
-                </div>
-                <h3 className="font-extrabold text-xl truncate text-slate-800 dark:text-slate-100 group-hover:text-cyber-purple dark:group-hover:text-cyber-cyan transition duration-200">
-                  {hostel.name}
-                </h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 line-clamp-2 leading-relaxed">
-                  {hostel.description}
-                </p>
-                <div className="pt-2 flex flex-wrap gap-1.5">
-                  {hostel.ac && <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md font-bold">AC ❄️</span>}
-                  {hostel.wifi && <span className="text-[10px] px-2 py-0.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-md font-bold">WiFi ⚡</span>}
-                  {hostel.laundry && <span className="text-[10px] px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-md font-bold">Laundry 🧺</span>}
-                </div>
+              <div className="p-6 pt-0 flex flex-wrap gap-2">
+                {hostel.ac && <span className="text-[9px] px-2 py-0.5 bg-[#38BDF8]/10 border border-[#38BDF8]/35 text-[#38BDF8] rounded-md font-bold">AC ❄️</span>}
+                {hostel.wifi && <span className="text-[9px] px-2 py-0.5 bg-white/5 border border-white/10 text-white rounded-md font-bold">WiFi ⚡</span>}
+                {hostel.laundry && <span className="text-[9px] px-2 py-0.5 bg-white/5 border border-white/10 text-white rounded-md font-bold">Laundry 🧺</span>}
               </div>
             </Link>
           ))}
@@ -244,101 +270,109 @@ export const Home = () => {
       </section>
 
       {/* 5. Showcase: Top Rated Messes */}
-      <section className="max-w-7xl mx-auto px-4 space-y-6">
+      <section className="max-w-7xl mx-auto px-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-3xl font-extrabold font-sans tracking-tight">Top Rated Messes</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Search fresh meal plans, clean seating, and daily/monthly charge reviews</p>
+            <h2 className="text-3xl font-black tracking-tight text-white uppercase">Top Rated Messes</h2>
+            <p className="text-xs text-slate-400 font-bold">Search fresh meal plans, clean seating, and daily/monthly charge reviews</p>
           </div>
-          <Link to="/search?type=Mess" className="text-sm text-cyber-purple dark:text-cyber-cyan font-bold hover:underline flex items-center">
+          <Link to="/search?type=Mess" className="text-xs text-[#38BDF8] font-black hover:underline flex items-center space-x-0.5">
             <span>View All</span>
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4.5 h-4.5" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {topMesses.map((mess) => (
-            <Link
-              key={mess._id}
-              to={`/place/Mess/${mess.slug || mess._id}`}
-              className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg dark:hover:border-cyber-blue/20"
-            >
-              <div className="relative aspect-video bg-slate-100 dark:bg-slate-950 overflow-hidden">
-                <img
-                  src={mess.images[0]?.url || 'https://picsum.photos/600/400'}
-                  alt={mess.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                />
-                <span className="absolute top-3 left-3 py-1 px-3 bg-slate-900/90 dark:bg-slate-950/90 text-xs font-black text-cyber-cyan rounded-full border border-cyber-cyan/30 shadow-md">
-                  ₹{mess.monthlyCharges}/mo
-                </span>
-                <span className="absolute bottom-3 right-3 py-1 px-2.5 bg-gradient-to-r from-cyber-blue to-cyan-600 text-white text-[10px] font-black rounded-full shadow-md">
-                  Daily: ₹{mess.dailyCharges}
-                </span>
-              </div>
-              <div className="p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <RatingStars rating={mess.averageRating} size={14} />
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({mess.ratingsCount} reviews)</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {topMesses.map((mess) => {
+            const isRedSpice = mess.name?.toLowerCase().includes("red spice");
+            const fallbackImage = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop";
+            return (
+              <Link
+                key={mess._id}
+                to={`/place/Mess/${mess.slug || mess._id}`}
+                className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
+              >
+                <div>
+                  <div className="relative aspect-video bg-zinc-950 border-b border-[#2A2A3D] overflow-hidden">
+                    <img
+                      src={isRedSpice ? fallbackImage : (mess.images[0]?.url || fallbackImage)}
+                      alt={mess.name}
+                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                    />
+                    <span className="absolute top-3 left-3 py-1.5 px-3 bg-black/85 border border-[#2A2A3D] text-[11px] font-black text-[#38BDF8] rounded-xl">
+                      ₹{mess.monthlyCharges}/mo
+                    </span>
+                    <span className="absolute bottom-3 right-3 py-1.5 px-3 bg-[#15152E] border border-[#2A2A3D] text-white text-[9px] font-black rounded-xl">
+                      Daily: ₹{mess.dailyCharges}
+                    </span>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <RatingStars rating={mess.averageRating} size={13} />
+                      <span className="text-[10px] font-black text-slate-400">({mess.ratingsCount} reviews)</span>
+                    </div>
+                    <h3 className="font-black text-xl truncate text-white group-hover:text-[#38BDF8] transition duration-150">
+                      {mess.name}
+                    </h3>
+                    <p className="text-xs text-slate-300 font-semibold line-clamp-2 leading-relaxed">
+                      Menu: {mess.menu}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="font-extrabold text-xl truncate text-slate-800 dark:text-slate-100 group-hover:text-cyber-purple dark:group-hover:text-cyber-cyan transition duration-200">
-                  {mess.name}
-                </h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 line-clamp-2 leading-relaxed">
-                  Menu: {mess.menu}
-                </p>
-                <div className="pt-2 flex gap-2">
-                  {mess.veg && <span className="text-[10px] px-2.5 py-0.5 bg-green-500/10 text-green-600 rounded-full font-bold">Pure Veg 🥬</span>}
-                  {mess.nonVeg && <span className="text-[10px] px-2.5 py-0.5 bg-red-500/10 text-red-600 rounded-full font-bold">Non-Veg 🍗</span>}
+                <div className="p-6 pt-0 flex gap-2">
+                  {mess.veg && <span className="text-[9px] px-3 py-0.5 bg-[#00D68F]/10 border border-[#00D68F]/30 text-[#00D68F] rounded-full font-black">Pure Veg 🥬</span>}
+                  {mess.nonVeg && <span className="text-[9px] px-3 py-0.5 bg-white/5 border border-white/10 text-white rounded-full font-black">Non-Veg 🍗</span>}
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
 
-      {/* 6. Showcase: Top Rated Shops */}
-      <section className="max-w-7xl mx-auto px-4 space-y-6">
+      {/* 6. Showcase: Top Cafes, Books, & Shops */}
+      <section className="max-w-7xl mx-auto px-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-3xl font-extrabold font-sans tracking-tight">Top Cafes, Books, & Shops</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Student recommended hangouts, printing services, and book retailers</p>
+            <h2 className="text-3xl font-black tracking-tight text-white uppercase">Top Cafes, Books & Services</h2>
+            <p className="text-xs text-slate-400 font-bold">Student recommended hangouts, printing services, and book retailers</p>
           </div>
-          <Link to="/search?type=Shop" className="text-sm text-cyber-purple dark:text-cyber-cyan font-bold hover:underline flex items-center">
+          <Link to="/search?type=Shop" className="text-xs text-[#38BDF8] font-black hover:underline flex items-center space-x-0.5">
             <span>View All</span>
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4.5 h-4.5" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {topShops.map((shop) => (
             <Link
               key={shop._id}
               to={`/place/Shop/${shop.slug || shop._id}`}
-              className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg dark:hover:border-cyber-purple/20"
+              className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
             >
-              <div className="relative aspect-video bg-slate-100 dark:bg-slate-950 overflow-hidden">
-                <img
-                  src={shop.images[0]?.url || 'https://picsum.photos/600/400'}
-                  alt={shop.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                />
-                <span className="absolute top-3 left-3 py-1 px-3 bg-gradient-to-r from-cyber-purple to-cyber-blue text-white text-xs font-black rounded-full shadow-md">
-                  {shop.category}
-                </span>
-                <span className="absolute bottom-3 right-3 py-1 px-2.5 bg-slate-950/90 text-cyber-cyan text-[10px] font-black rounded-full shadow-md border border-cyber-cyan/30">
-                  {shop.openingTime} - {shop.closingTime}
-                </span>
-              </div>
-              <div className="p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <RatingStars rating={shop.averageRating} size={14} />
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({shop.ratingsCount} reviews)</span>
+              <div>
+                <div className="relative aspect-video bg-zinc-950 border-b border-[#2A2A3D] overflow-hidden">
+                  <img
+                    src={shop.images[0]?.url || 'https://picsum.photos/600/400'}
+                    alt={shop.name}
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                  />
+                  <span className="absolute top-3 left-3 py-1.5 px-3 bg-[#15152E] border border-[#2A2A3D] text-[#38BDF8] text-[10px] font-black rounded-xl">
+                    {shop.category}
+                  </span>
+                  <span className="absolute bottom-3 right-3 py-1.5 px-2.5 bg-black/80 border border-[#2A2A3D] text-white text-[9px] font-black rounded-xl">
+                    {shop.openingTime} - {shop.closingTime}
+                  </span>
                 </div>
-                <h3 className="font-extrabold text-xl truncate text-slate-800 dark:text-slate-100 group-hover:text-cyber-purple dark:group-hover:text-cyber-cyan transition duration-200">
-                  {shop.name}
-                </h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
-                  📍 {shop.address}
-                </p>
+                <div className="p-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <RatingStars rating={shop.averageRating} size={13} />
+                    <span className="text-[10px] font-black text-slate-400">({shop.ratingsCount} reviews)</span>
+                  </div>
+                  <h3 className="font-black text-xl truncate text-white group-hover:text-[#38BDF8] transition duration-150">
+                    {shop.name}
+                  </h3>
+                  <p className="text-xs text-slate-300 font-semibold truncate">
+                    📍 {shop.address}
+                  </p>
+                </div>
               </div>
             </Link>
           ))}
@@ -347,41 +381,43 @@ export const Home = () => {
 
       {/* 7. Recent Reviews Section */}
       {recentReviews.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 space-y-6">
-          <h2 className="text-3xl font-extrabold font-sans tracking-tight">Recent Reviews</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {recentReviews.map((rev) => (
-              <div
-                key={rev._id}
-                className="glass-card p-6 space-y-4 hover:border-cyber-purple/20 duration-300 hover:shadow-lg relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 radial-glow-purple rounded-full blur-2xl opacity-40"></div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <img
-                      src={rev.author?.avatar || 'https://picsum.photos/150'}
-                      alt={rev.author?.name}
-                      className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-800"
-                    />
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">{rev.author?.name}</h4>
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
-                        Reviewed {rev.placeId?.name || 'Listing'}
-                      </span>
+        <section className="max-w-7xl mx-auto px-6 space-y-6">
+          <h2 className="text-3xl font-black tracking-tight text-white uppercase">Recent Reviews</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {recentReviews.map((rev) => {
+              const studentAvatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(rev.author?.name || 'student')}`;
+              return (
+                <div
+                  key={rev._id}
+                  className="bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 transition duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue space-y-4 relative overflow-hidden"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3.5">
+                      <img
+                        src={studentAvatarUrl}
+                        alt={rev.author?.name}
+                        className="w-12 h-12 rounded-xl object-cover border border-[#2A2A3D] bg-slate-900 shadow-[2px_2px_0px_#000000]"
+                      />
+                      <div>
+                        <h4 className="text-base font-black text-white">{rev.author?.name}</h4>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mt-0.5">
+                          Reviewed {rev.placeId?.name || 'Listing'}
+                        </span>
+                      </div>
                     </div>
+                    <RatingStars rating={rev.rating} size={12} />
                   </div>
-                  <RatingStars rating={rev.rating} size={14} />
-                </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3 italic">
-                  "{rev.reviewText}"
-                </p>
-                {rev.pros && (
-                  <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1">
-                    <strong className="text-[9px] uppercase font-black tracking-wider bg-green-500/10 text-green-600 px-1.5 py-0.5 rounded">Pros</strong> {rev.pros}
+                  <p className="text-xs text-slate-205 font-semibold leading-relaxed italic">
+                    "{rev.reviewText}"
                   </p>
-                )}
-              </div>
-            ))}
+                  {rev.pros && (
+                    <p className="text-xs text-[#00D68F] flex items-center gap-1.5 font-bold">
+                      <strong className="text-[9px] uppercase font-black tracking-wider bg-[#00D68F]/10 border border-[#00D68F]/30 px-1.5 py-0.5 rounded">Pros</strong> {rev.pros}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -391,4 +427,3 @@ export const Home = () => {
 };
 
 export default Home;
-

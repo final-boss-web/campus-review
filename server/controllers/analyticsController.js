@@ -274,6 +274,11 @@ export const getDashboardStats = async (req, res, next) => {
       { $sort: { _id: 1 } }
     ]);
 
+    const totalHostels = await Hostel.countDocuments();
+    const totalMesses = await Mess.countDocuments();
+    const totalShops = await Shop.countDocuments();
+    const totalScamReports = await ScamReport.countDocuments();
+
     res.status(200).json({
       cards: {
         totalUsers,
@@ -294,6 +299,10 @@ export const getDashboardStats = async (req, res, next) => {
         weeklyVisitors,
         monthlyVisitors,
         liveVisitors,
+        totalHostels,
+        totalMesses,
+        totalShops,
+        totalScamReports,
       },
       breakdowns: {
         topPages,

@@ -67,17 +67,12 @@ const MainAppContent = () => {
     restoreSession();
   }, [dispatch]);
 
-  // Sync theme on first boot
+  // Force dark theme on first boot
   useEffect(() => {
-    const theme = localStorage.getItem('color-theme') || 'light';
     const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
+    root.classList.add('dark');
+    document.body.classList.add('dark');
+    localStorage.setItem('color-theme', 'dark');
   }, []);
 
 

@@ -1,32 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap');
 
-/* Light Mode Variables */
+/* Neubrutalism Locked Variables */
 :root {
-  --bg-primary-light: #F8FAFC;
-  --bg-secondary-light: #FFFFFF;
-  --text-primary-light: #0F172A;
-  --text-secondary-light: #475569;
-  --text-tertiary-light: #94A3B8;
-  --border-light: #E2E8F0;
-  --primary-light: #8B5CF6;
-  --secondary-light: #06B6D4;
-  --success-light: #10B981;
-  --danger-light: #EF4444;
-}
-
-/* Dark Mode Variables */
-:root[data-theme="dark"],
-.dark {
-  --bg-primary-light: #0F172A;
-  --bg-secondary-light: #1E293B;
+  --bg-primary-light: #0D0D1A;
+  --bg-secondary-light: #15152E;
   --text-primary-light: #FFFFFF;
   --text-secondary-light: #CBD5E1;
   --text-tertiary-light: #94A3B8;
-  --border-light: #475569;
-  --primary-light: #A78BFA;
-  --secondary-light: #22D3EE;
-  --success-light: #34D399;
-  --danger-light: #F87171;
+  --border-light: #2A2A3D;
+  --primary-light: #00D68F; /* Green Mint Primary */
+  --secondary-light: #EF4444; /* Warning Red */
+  --success-light: #00D68F;
+  --danger-light: #EF4444;
+}
+
+/* Fallback class enforcement since app is forced dark */
+.dark, :root {
+  --bg-primary-light: #0D0D1A;
+  --bg-secondary-light: #15152E;
+  --text-primary-light: #FFFFFF;
+  --text-secondary-light: #CBD5E1;
+  --text-tertiary-light: #94A3B8;
+  --border-light: #2A2A3D;
 }
 
 @tailwind base;
@@ -40,105 +35,136 @@
     @apply font-sans antialiased transition-colors duration-300;
   }
 
-  h1, h2, h3, .heading {
-    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  h1, h2, h3, h4, h5, h6, .heading {
+    font-family: 'Space Grotesk', 'Outfit', sans-serif !important;
     color: var(--text-primary-light) !important;
+    @apply tracking-tight font-bold;
   }
 
-  body, p, span, div, input, textarea, select, button {
-    font-family: 'Poppins', 'Roboto', sans-serif;
+  body, p, span, div, input, textarea, select, button, label {
+    font-family: 'DM Sans', 'Plus Jakarta Sans', sans-serif;
   }
 
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    background: #0D0D1A;
   }
   ::-webkit-scrollbar-thumb {
-    background-color: var(--border-light);
-    @apply rounded-full hover:bg-slate-300 dark:hover:bg-slate-700;
+    background-color: #15152E;
+    border: 1px solid #2A2A3D;
+    @apply rounded-full hover:bg-[#38BDF8];
   }
 }
 
-/* Glassmorphism Classes */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+/* Custom premium card design - Neubrutalism Overrides */
+.glass-card-premium {
+  @apply bg-[#15152E] border border-[#2A2A3D] rounded-2xl transition-all duration-300;
 }
 
-.dark .glass-effect {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.glass-card-premium:hover {
+  @apply -translate-x-1 -translate-y-1 shadow-brutal-blue border-[#38BDF8];
+}
+
+/* Glassmorphism Pill (Floating components) - Restyled to Neubrutalism */
+.glass-pill {
+  @apply bg-[#15152E] border border-[#2A2A3D] transition-all duration-300;
+}
+
+.glass-pill:hover {
+  @apply -translate-x-1 -translate-y-1 shadow-brutal-white border-white;
+}
+
+/* Custom Form inputs styling */
+.premium-input {
+  @apply w-full px-4 py-3 rounded-xl bg-[#0D0D1A] border border-[#2A2A3D] text-white placeholder-slate-500 focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8] transition-all duration-200 text-sm;
+}
+
+/* Custom button styles - Neubrutalism primary & secondary */
+.btn-primary-premium {
+  @apply py-3 px-6 rounded-xl font-extrabold text-black bg-[#00D68F] border border-[#00D68F] transition-all duration-200 text-sm active:scale-95 shadow-sm;
+}
+
+.btn-primary-premium:hover {
+  @apply -translate-x-0.5 -translate-y-0.5 shadow-brutal-white border-white;
+}
+
+.btn-secondary-premium {
+  @apply py-3 px-6 rounded-xl font-extrabold text-white bg-[#15152E] border border-[#2A2A3D] transition-all duration-200 text-sm active:scale-95;
+}
+
+.btn-secondary-premium:hover {
+  @apply -translate-x-0.5 -translate-y-0.5 shadow-brutal-blue border-[#38BDF8];
+}
+
+/* Neubrutalist glass-effect base */
+.glass-effect {
+  @apply bg-[#15152E]/90 border border-[#2A2A3D] rounded-2xl transition-all duration-300;
+}
+
+.glass-effect:hover {
+  @apply -translate-x-1 -translate-y-1 border-[#38BDF8] shadow-brutal-blue;
 }
 
 .glass-card {
-  @apply bg-white/70 dark:bg-[#0f172a]/60 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-glass-light dark:shadow-glass-dark rounded-3xl transition-all duration-300;
+  @apply bg-[#15152E] border border-[#2A2A3D] rounded-2xl transition-all duration-300;
+}
+
+.glass-card:hover {
+  @apply -translate-x-1 -translate-y-1 border-[#EF4444] shadow-brutal-red;
 }
 
 /* Custom Gradients */
 .gradient-text-neon {
-  background-image: linear-gradient(to right, #a855f7, #2642ff, #06b6d4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  background-size: 200% auto;
-  animation: textGradient 4s linear infinite;
+  @apply bg-gradient-to-r from-[#FF7A00] via-[#FF4D8D] to-[#8B5CF6] bg-clip-text text-transparent bg-size-200;
+  animation: textGradient 6s linear infinite;
 }
 
 .gradient-bg-neon {
-  background-image: linear-gradient(to right, #a855f7, #6366f1, #06b6d4);
-  background-size: 200% auto;
-  animation: textGradient 4s linear infinite;
+  @apply bg-gradient-to-r from-[#00D68F] via-[#38BDF8] to-[#8B5CF6] bg-size-200 text-black font-black;
+  animation: textGradient 6s linear infinite;
 }
 
 .gradient-border-neon {
   position: relative;
-  background: linear-gradient(to right, #a855f7, #06b6d4);
+  background: linear-gradient(to right, #00D68F, #38BDF8);
   padding: 1px;
   border-radius: 1.5rem;
 }
 
 .gradient-border-neon-inner {
-  @apply rounded-[23px] h-full w-full;
-  background-color: #ffffff;
+  @apply rounded-[23px] h-full w-full bg-[#15152E];
 }
-
-.dark .gradient-border-neon-inner {
-  background-color: #0f172a;
-}
-
 
 /* Animated Grid Background */
 .bg-grid-pattern {
-  background-size: 50px 50px;
+  background-size: 35px 35px;
   background-image: 
-    linear-gradient(to right, rgba(99, 102, 241, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
 }
 
-.dark .bg-grid-pattern {
-  background-image: 
-    linear-gradient(to right, rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
-}
-
-/* Floating Radial Glows */
+/* Floating Radial Glows matching theme */
 .radial-glow-purple {
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.04) 0%, transparent 70%);
 }
 
 .radial-glow-blue {
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 214, 143, 0.04) 0%, transparent 70%);
 }
 
 .radial-glow-pink {
-  background: radial-gradient(circle, rgba(244, 63, 94, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.04) 0%, transparent 70%);
 }
 
+/* Helper background animations */
+@keyframes textGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.bg-size-200 {
+  background-size: 200% auto;
+}

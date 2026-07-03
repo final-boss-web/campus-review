@@ -29,7 +29,7 @@ export const Search = () => {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters State (populated from search parameters initially)
+  // Filters State
   const [placeType, setPlaceType] = useState(searchParams.get('type') || 'Hostel');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
@@ -177,7 +177,7 @@ export const Search = () => {
         payload.menuImages = newPlaceData.menuImages;
         payload.veg = newPlaceData.veg;
         payload.nonVeg = newPlaceData.nonVeg;
-        payload.contact = newPlaceData.phone; // map contact
+        payload.contact = newPlaceData.phone;
       } else if (newPlaceType === 'Shop') {
         payload.openingTime = newPlaceData.openingTime;
         payload.closingTime = newPlaceData.closingTime;
@@ -188,7 +188,6 @@ export const Search = () => {
       const { data } = await api.post('/places', payload);
       setAddSuccess(data.message);
       
-      // Reset form
       setNewPlaceData({
         name: '',
         address: '',
@@ -218,7 +217,6 @@ export const Search = () => {
         nonVeg: false,
       });
 
-      // Reload
       fetchPlaces();
       setTimeout(() => setIsAddModalOpen(false), 2000);
     } catch (err) {
@@ -230,11 +228,11 @@ export const Search = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6 relative">
+    <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 space-y-8 relative bg-[#0D0D1A]">
       <div className="flex justify-start">
         <Link
           to="/"
-          className="inline-flex items-center space-x-2 text-xs font-black text-slate-500 hover:text-cyber-purple dark:text-slate-400 dark:hover:text-cyber-cyan transition-all duration-200 bg-white/50 dark:bg-slate-900/50 px-4 py-2.5 rounded-xl border border-slate-200/40 dark:border-slate-800/40 shadow-sm hover:shadow-md"
+          className="inline-flex items-center space-x-2 text-xs font-black text-white hover:text-[#38BDF8] transition-all duration-200 bg-[#15152E] px-4 py-2.5 rounded-xl border border-[#2A2A3D] shadow-sm hover:border-white"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
@@ -246,22 +244,22 @@ export const Search = () => {
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight font-sans">Discover Local Places</h1>
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Search & verified student filter logs</p>
+          <h1 className="text-4xl font-black text-white uppercase tracking-tight">Discover Local Places</h1>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Search & verified student filter logs</p>
         </div>
         {user?.role === 'admin' && (
           <button
             onClick={handleAddButtonClick}
-            className="flex items-center space-x-2 py-3 px-6 bg-gradient-to-r from-cyber-purple to-brand-600 hover:opacity-95 text-white rounded-2xl shadow-lg shadow-brand-500/10 font-black transition duration-200 text-sm hover:scale-[1.02]"
+            className="flex items-center space-x-2 py-3 px-6 bg-[#00D68F] text-black rounded-xl border border-[#00D68F] hover:border-white font-black transition duration-200 text-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-blue active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4.5 h-4.5" />
             <span>Add Listing</span>
           </button>
         )}
       </div>
 
       {/* Type Toggle Grid */}
-      <div className="flex border border-slate-200/50 dark:border-slate-800/40 rounded-2xl overflow-hidden max-w-sm bg-white/70 dark:bg-[#0f172a]/60 backdrop-blur-md shadow-sm p-1">
+      <div className="flex border border-[#2A2A3D] rounded-xl overflow-hidden max-w-sm bg-[#15152E] shadow-sm p-1">
         {['Hostel', 'Mess', 'Shop'].map((type) => (
           <button
             key={type}
@@ -269,10 +267,10 @@ export const Search = () => {
               setPlaceType(type);
               setSearchParams({ type });
             }}
-            className={`flex-1 py-2.5 text-center text-xs font-black rounded-xl transition duration-200 ${
+            className={`flex-1 py-2 text-center text-xs font-black rounded-lg transition duration-200 ${
               placeType === type
-                ? 'bg-gradient-to-r from-cyber-purple to-cyber-blue text-white shadow-md'
-                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800/40'
+                ? 'bg-[#00D68F] text-black border border-[#00D68F] shadow-sm'
+                : 'text-white hover:bg-white/5'
             }`}
           >
             {type}s
@@ -284,16 +282,16 @@ export const Search = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         {/* Filters Sidebar */}
-        <form onSubmit={applyFilters} className="lg:col-span-1 glass-card p-6 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
-            <span className="font-extrabold flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-cyber-purple" />
+        <form onSubmit={applyFilters} className="lg:col-span-1 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-6 transition duration-200 hover:border-white hover:shadow-brutal-blue">
+          <div className="flex items-center justify-between border-b border-[#2A2A3D] pb-3">
+            <span className="font-black flex items-center space-x-2 text-white text-sm uppercase tracking-wider">
+              <Filter className="w-4.5 h-4.5 text-[#38BDF8]" />
               <span>Filters</span>
             </span>
             <button
               type="button"
               onClick={resetFilters}
-              className="text-[10px] font-black text-slate-400 hover:text-cyber-purple uppercase tracking-widest transition"
+              className="text-[10px] font-black text-slate-400 hover:text-[#EF4444] uppercase tracking-widest transition"
             >
               Clear All
             </button>
@@ -301,36 +299,36 @@ export const Search = () => {
 
           {/* Search bar */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Search Keyword</label>
+            <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Search Keyword</label>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Name or Address..."
-              className="w-full bg-slate-50 dark:bg-[#090d16] border border-slate-200/60 dark:border-slate-800/80 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-cyber-purple/55 transition"
+              className="premium-input"
             />
           </div>
 
-          {/* Price Range Filter (Hostel & Mess only) */}
+          {/* Price Range Filter */}
           {(placeType === 'Hostel' || placeType === 'Mess') && (
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 {placeType === 'Hostel' ? 'Rent Range (₹)' : 'Monthly Charge (₹)'}
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-2.5">
                 <input
                   type="number"
                   placeholder="Min"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-1/2 bg-slate-50 dark:bg-[#090d16] border border-slate-200/60 dark:border-slate-800/80 p-2.5 rounded-xl text-xs focus:ring-1 focus:ring-cyber-purple/55 focus:outline-none"
+                  className="premium-input w-1/2"
                 />
                 <input
                   type="number"
                   placeholder="Max"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-1/2 bg-slate-50 dark:bg-[#090d16] border border-slate-200/60 dark:border-slate-800/80 p-2.5 rounded-xl text-xs focus:ring-1 focus:ring-cyber-purple/55 focus:outline-none"
+                  className="premium-input w-1/2"
                 />
               </div>
             </div>
@@ -339,18 +337,18 @@ export const Search = () => {
           {/* Shop specific Categories */}
           {placeType === 'Shop' && (
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Shop Category</label>
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Shop Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#090d16] border border-slate-200/60 dark:border-slate-800/80 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-cyber-purple/55"
+                className="premium-input"
               >
-                <option value="">All Categories</option>
-                <option value="Restaurant & Cafe">Restaurant & Cafe</option>
-                <option value="Medical Store">Medical Store</option>
-                <option value="Stationery & Photocopy">Stationery & Photocopy</option>
-                <option value="Tea Stall">Tea Stall</option>
-                <option value="Book Store">Book Store</option>
+                <option value="" className="bg-[#15152E]">All Categories</option>
+                <option value="Restaurant & Cafe" className="bg-[#15152E]">Restaurant & Cafe</option>
+                <option value="Medical Store" className="bg-[#15152E]">Medical Store</option>
+                <option value="Stationery & Photocopy" className="bg-[#15152E]">Stationery & Photocopy</option>
+                <option value="Tea Stall" className="bg-[#15152E]">Tea Stall</option>
+                <option value="Book Store" className="bg-[#15152E]">Book Store</option>
               </select>
             </div>
           )}
@@ -359,36 +357,36 @@ export const Search = () => {
           {placeType === 'Hostel' && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Gender Option</label>
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Gender Option</label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#090d16] border border-slate-200/60 dark:border-slate-800/80 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-cyber-purple/55"
+                  className="premium-input"
                 >
-                  <option value="">All Hostels</option>
-                  <option value="boys">Boys Hostel</option>
-                  <option value="girls">Girls Hostel</option>
+                  <option value="" className="bg-[#15152E]">All Hostels</option>
+                  <option value="boys" className="bg-[#15152E]">Boys Hostel</option>
+                  <option value="girls" className="bg-[#15152E]">Girls Hostel</option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Amenities</label>
-                <div className="space-y-2 flex flex-col">
-                  <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer">
-                    <input type="checkbox" checked={ac} onChange={(e) => setAc(e.target.checked)} className="rounded border-slate-300 text-cyber-purple focus:ring-cyber-purple" />
-                    <span>AC Available ❄️</span>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Amenities</label>
+                <div className="space-y-2.5 flex flex-col">
+                  <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer">
+                    <input type="checkbox" checked={ac} onChange={(e) => setAc(e.target.checked)} className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4.5 h-4.5" />
+                    <span className="text-white">AC Available ❄️</span>
                   </label>
-                  <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer">
-                    <input type="checkbox" checked={wifi} onChange={(e) => setWifi(e.target.checked)} className="rounded border-slate-300 text-cyber-purple focus:ring-cyber-purple" />
-                    <span>WiFi Included ⚡</span>
+                  <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer">
+                    <input type="checkbox" checked={wifi} onChange={(e) => setWifi(e.target.checked)} className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4.5 h-4.5" />
+                    <span className="text-white">WiFi Included ⚡</span>
                   </label>
-                  <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer">
-                    <input type="checkbox" checked={laundry} onChange={(e) => setLaundry(e.target.checked)} className="rounded border-slate-300 text-cyber-purple focus:ring-cyber-purple" />
-                    <span>Laundry Included 🧺</span>
+                  <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer">
+                    <input type="checkbox" checked={laundry} onChange={(e) => setLaundry(e.target.checked)} className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4.5 h-4.5" />
+                    <span className="text-white">Laundry Included 🧺</span>
                   </label>
-                  <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer">
-                    <input type="checkbox" checked={washing} onChange={(e) => setWashing(e.target.checked)} className="rounded border-slate-300 text-cyber-purple focus:ring-cyber-purple" />
-                    <span>Washing Machine</span>
+                  <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer">
+                    <input type="checkbox" checked={washing} onChange={(e) => setWashing(e.target.checked)} className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4.5 h-4.5" />
+                    <span className="text-white">Washing Machine</span>
                   </label>
                 </div>
               </div>
@@ -398,15 +396,15 @@ export const Search = () => {
           {/* Mess specific specifications */}
           {placeType === 'Mess' && (
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Food Options</label>
-              <div className="space-y-2 flex flex-col">
-                <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer">
-                  <input type="checkbox" checked={veg} onChange={(e) => setVeg(e.target.checked)} className="rounded border-slate-300 text-cyber-purple focus:ring-cyber-purple" />
-                  <span>Pure Veg meals 🥬</span>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Food Options</label>
+              <div className="space-y-2.5 flex flex-col">
+                <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer">
+                  <input type="checkbox" checked={veg} onChange={(e) => setVeg(e.target.checked)} className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4.5 h-4.5" />
+                  <span className="text-white">Pure Veg meals 🥬</span>
                 </label>
-                <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer">
-                  <input type="checkbox" checked={nonVeg} onChange={(e) => setNonVeg(e.target.checked)} className="rounded border-slate-300 text-cyber-purple focus:ring-cyber-purple" />
-                  <span>Non-Veg served 🍗</span>
+                <label className="flex items-center space-x-2.5 text-xs font-bold cursor-pointer">
+                  <input type="checkbox" checked={nonVeg} onChange={(e) => setNonVeg(e.target.checked)} className="rounded border-[#2A2A3D] bg-slate-900 text-[#38BDF8] focus:ring-0 w-4.5 h-4.5" />
+                  <span className="text-white">Non-Veg served 🍗</span>
                 </label>
               </div>
             </div>
@@ -414,7 +412,7 @@ export const Search = () => {
 
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-cyber-purple to-cyber-blue text-white rounded-xl font-extrabold transition hover:opacity-95 text-xs shadow-md shadow-brand-500/10"
+            className="w-full py-3 bg-[#00D68F] border border-[#00D68F] rounded-xl text-black font-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-blue transition duration-150 text-xs"
           >
             Apply Filters
           </button>
@@ -423,75 +421,79 @@ export const Search = () => {
         {/* Results List */}
         <div className="lg:col-span-3">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[1, 2, 4].map((i) => (
-                <div key={i} className="animate-pulse bg-white dark:bg-[#0f172a]/40 border border-slate-200/50 dark:border-slate-800/40 rounded-3xl h-64"></div>
+                <div key={i} className="animate-pulse bg-[#15152E] border border-[#2A2A3D] rounded-2xl h-64 shadow-sm"></div>
               ))}
             </div>
           ) : places.length === 0 ? (
-            <div className="text-center py-20 glass-card space-y-4">
-              <Compass className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto" />
-              <h3 className="text-lg font-bold">No listings found</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                No approved listings matching your filters were found. Try resetting filters or add a new place.
+            <div className="text-center py-24 bg-[#15152E] border border-[#2A2A3D] rounded-2xl shadow-sm space-y-5">
+              <Compass className="w-12 h-12 text-[#EF4444] mx-auto animate-spin" />
+              <h3 className="text-xl font-black text-white uppercase">No listings found</h3>
+              <p className="text-xs text-slate-355 max-w-sm mx-auto">
+                No approved listings matching your filters were found. Try resetting filters or search again.
               </p>
               <button
                 onClick={resetFilters}
-                className="py-2 px-4 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700"
+                className="py-2.5 px-5 bg-[#00D68F] text-black font-black border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-blue rounded-xl text-xs transition-all duration-150"
               >
                 Reset Filters
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-              {places.map((place) => (
-                <Link
-                  key={place._id}
-                  to={`/place/${placeType}/${place.slug || place._id}`}
-                  className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="relative aspect-video bg-slate-100 dark:bg-slate-950 overflow-hidden">
-                      <img
-                        src={place.images[0]?.url || 'https://picsum.photos/600/400'}
-                        alt={place.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                      />
-                      <span className="absolute top-3 left-3 py-1 px-3 bg-slate-900/95 dark:bg-slate-950/95 text-xs font-black text-cyber-cyan rounded-full border border-cyber-cyan/30 shadow-md">
-                        {placeType === 'Hostel' && `₹${place.roomRent}/mo`}
-                        {placeType === 'Mess' && `₹${place.monthlyCharges}/mo`}
-                        {placeType === 'Shop' && `${place.category}`}
-                      </span>
-                      {placeType === 'Hostel' && (
-                        <span className="absolute bottom-3 right-3 py-1 px-2.5 bg-gradient-to-r from-cyber-purple to-brand-600 text-white text-[10px] font-black rounded-full shadow-md">
-                          {place.nearbyDistance} km from Gate
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
+              {places.map((place) => {
+                const isRedSpice = place.name?.toLowerCase().includes("red spice");
+                const fallbackImage = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop";
+                return (
+                  <Link
+                    key={place._id}
+                    to={`/place/${placeType}/${place.slug || place._id}`}
+                    className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="relative aspect-video bg-zinc-955 border-b border-[#2A2A3D] overflow-hidden">
+                        <img
+                          src={isRedSpice ? fallbackImage : (place.images[0]?.url || fallbackImage)}
+                          alt={place.name}
+                          className="w-full h-full object-cover group-hover:scale-102 transition duration-300"
+                        />
+                        <span className="absolute top-3 left-3 py-1.5 px-3 bg-black/85 border border-[#2A2A3D] text-[11px] font-black text-[#38BDF8] rounded-xl">
+                          {placeType === 'Hostel' && `₹${place.roomRent}/mo`}
+                          {placeType === 'Mess' && `₹${place.monthlyCharges}/mo`}
+                          {placeType === 'Shop' && `${place.category}`}
                         </span>
-                      )}
-                    </div>
-
-                    <div className="p-6 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <RatingStars rating={place.averageRating} size={14} />
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({place.ratingsCount} reviews)</span>
+                        {placeType === 'Hostel' && (
+                          <span className="absolute bottom-3 right-3 py-1.5 px-3 bg-[#15152E] border border-[#2A2A3D] text-white text-[9px] font-black rounded-xl">
+                            {place.nearbyDistance} km from gate
+                          </span>
+                        )}
                       </div>
-                      <h3 className="font-extrabold text-xl truncate text-slate-800 dark:text-slate-100 group-hover:text-cyber-purple dark:group-hover:text-cyber-cyan transition duration-200">
-                        {place.name}
-                      </h3>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 line-clamp-2 leading-relaxed">
-                        {place.description || place.address}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="px-6 pb-6 pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
-                    <span className="flex items-center">
-                      <MapPin className="w-3.5 h-3.5 mr-1 text-slate-300" />
-                      <span className="truncate max-w-[150px]">{place.address}</span>
-                    </span>
-                    <span className="bg-green-500/10 text-green-600 px-1.5 py-0.5 rounded font-black">Verified listing</span>
-                  </div>
-                </Link>
-              ))}
+                      <div className="p-6 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <RatingStars rating={place.averageRating} size={13} />
+                          <span className="text-[10px] font-black text-slate-400">({place.ratingsCount} reviews)</span>
+                        </div>
+                        <h3 className="font-black text-xl truncate text-white group-hover:text-[#38BDF8] transition duration-150">
+                          {place.name}
+                        </h3>
+                        <p className="text-xs text-slate-300 font-semibold line-clamp-2 leading-relaxed">
+                          {place.description || place.address}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="px-6 pb-6 pt-3 border-t border-[#2A2A3D] flex items-center justify-between text-[10px] text-slate-355 font-bold">
+                      <span className="flex items-center">
+                        <MapPin className="w-3.5 h-3.5 mr-1 text-[#38BDF8]" />
+                        <span className="truncate max-w-[150px]">{place.address}</span>
+                      </span>
+                      <span className="bg-[#38BDF8]/5 border border-[#38BDF8]/30 text-[#38BDF8] px-2.5 py-0.5 rounded font-black">Verified Listing</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
@@ -500,31 +502,31 @@ export const Search = () => {
 
       {/* Add Place Dialog Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl glass-effect p-6 overflow-y-auto max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="relative w-full max-w-2xl bg-[#15152E] border border-[#2A2A3D] rounded-2xl shadow-xl p-6 overflow-y-auto max-h-[90vh]">
             
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+            <div className="flex items-center justify-between border-b border-[#2A2A3D] pb-4 mb-6">
               <div>
-                <h3 className="text-xl font-bold">Add New Place Listing</h3>
-                <p className="text-xs text-slate-400">Add hostels, mess dining rooms, or bookstore photocopy outlets</p>
+                <h3 className="text-xl font-black text-white uppercase">Add New Place Listing</h3>
+                <p className="text-xs text-slate-400 font-semibold">Add hostels, mess dining rooms, or bookstore photocopy outlets</p>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-2 border border-[#2A2A3D] bg-slate-900 rounded-xl hover:bg-slate-800 transition"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
 
             {/* Success / Error Alerts */}
             {addError && (
-              <div className="p-3 mb-4 text-xs font-semibold text-red-600 bg-red-50 dark:bg-red-950/20 rounded-xl border border-red-200">
+              <div className="p-3.5 mb-4 text-xs font-black text-white bg-[#EF4444] border border-[#EF4444] rounded-xl">
                 {addError}
               </div>
             )}
             {addSuccess && (
-              <div className="p-3 mb-4 text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-950/20 rounded-xl border border-green-200">
+              <div className="p-3.5 mb-4 text-xs font-black text-black bg-[#00D68F] border border-[#00D68F] rounded-xl">
                 {addSuccess}
               </div>
             )}
@@ -533,17 +535,17 @@ export const Search = () => {
             <form onSubmit={handleAddSubmit} className="space-y-6">
               {/* Type Switcher */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Listing Type</label>
-                <div className="flex gap-2 p-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm">
+                <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Listing Type</label>
+                <div className="flex gap-2.5 p-1 bg-slate-900 border border-[#2A2A3D] rounded-xl max-w-sm">
                   {['Hostel', 'Mess', 'Shop'].map((t) => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setNewPlaceType(t)}
-                      className={`flex-1 py-2 text-center text-xs font-bold rounded-xl transition ${
+                      className={`flex-1 py-1.5 text-center text-xs font-black rounded-lg transition ${
                         newPlaceType === t
-                          ? 'bg-brand-600 text-white shadow-md'
-                          : 'text-slate-500 hover:bg-slate-200/50'
+                          ? 'bg-[#00D68F] text-black border border-[#00D68F]'
+                          : 'text-white hover:bg-white/5'
                       }`}
                     >
                       {t}
@@ -554,41 +556,41 @@ export const Search = () => {
 
               {/* Common Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold">Name of Place *</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-white uppercase tracking-wider">Name of Place *</label>
                   <input
                     type="text"
                     required
                     value={newPlaceData.name}
                     onChange={(e) => setNewPlaceData({ ...newPlaceData, name: e.target.value })}
                     placeholder="e.g. Starlight Boys Residency"
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs focus:outline-none focus:border-brand-500"
+                    className="premium-input"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold">Address Location *</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-white uppercase tracking-wider">Address Location *</label>
                   <input
                     type="text"
                     required
                     value={newPlaceData.address}
                     onChange={(e) => setNewPlaceData({ ...newPlaceData, address: e.target.value })}
                     placeholder="e.g. Street Lane 4, opposite gate"
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs focus:outline-none focus:border-brand-500"
+                    className="premium-input"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold">Contact / Phone Number *</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-white uppercase tracking-wider">Contact / Phone Number *</label>
                   <input
                     type="text"
                     required
                     value={newPlaceData.phone}
                     onChange={(e) => setNewPlaceData({ ...newPlaceData, phone: e.target.value })}
                     placeholder="e.g. +91 98765 43210"
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs focus:outline-none focus:border-brand-500"
+                    className="premium-input"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold">Distance from Campus Gate (km) *</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-white uppercase tracking-wider">Distance from Campus Gate (km) *</label>
                   <input
                     type="number"
                     step="0.1"
@@ -596,59 +598,59 @@ export const Search = () => {
                     value={newPlaceData.nearbyDistance}
                     onChange={(e) => setNewPlaceData({ ...newPlaceData, nearbyDistance: e.target.value })}
                     placeholder="e.g. 0.4"
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs focus:outline-none"
+                    className="premium-input"
                   />
                 </div>
               </div>
 
               {/* Hostel specific inputs */}
               {newPlaceType === 'Hostel' && (
-                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl space-y-4">
-                  <h4 className="text-xs font-bold text-brand-600 uppercase tracking-widest">Hostel / PG Specifications</h4>
+                <div className="p-5 bg-slate-900 rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
+                  <h4 className="text-xs font-black text-[#38BDF8] uppercase tracking-widest">Hostel / PG Specifications</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Owner Name *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Owner Name *</label>
                       <input
                         type="text"
                         required={newPlaceType === 'Hostel'}
                         value={newPlaceData.ownerName}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, ownerName: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Monthly Rent (₹) *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Monthly Rent (₹) *</label>
                       <input
                         type="number"
                         required={newPlaceType === 'Hostel'}
                         value={newPlaceData.roomRent}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, roomRent: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Security Deposit (₹) *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Security Deposit (₹) *</label>
                       <input
                         type="number"
                         required={newPlaceType === 'Hostel'}
                         value={newPlaceData.deposit}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, deposit: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
                   </div>
 
                   {/* Amenities checkboxes */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
                     {['ac', 'wifi', 'laundry', 'washing', 'parking', 'security', 'messAvailable'].map((field) => (
-                      <label key={field} className="flex items-center space-x-2 text-xs cursor-pointer">
+                      <label key={field} className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                         <input
                           type="checkbox"
                           checked={newPlaceData[field]}
                           onChange={(e) => setNewPlaceData({ ...newPlaceData, [field]: e.target.checked })}
-                          className="rounded text-brand-600"
+                          className="rounded text-indigo-650 focus:ring-0"
                         />
-                        <span className="capitalize">
+                        <span className="capitalize text-slate-350">
                           {field === 'ac' ? 'AC' :
                            field === 'wifi' ? 'WiFi' :
                            field === 'messAvailable' ? 'Mess Available' :
@@ -663,71 +665,71 @@ export const Search = () => {
 
               {/* Mess specific inputs */}
               {newPlaceType === 'Mess' && (
-                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl space-y-4">
-                  <h4 className="text-xs font-bold text-brand-600 uppercase tracking-widest">Mess / Dining Details</h4>
+                <div className="p-5 bg-slate-900 rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
+                  <h4 className="text-xs font-black text-[#38BDF8] uppercase tracking-widest">Mess / Dining Details</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Monthly Charges (₹) *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Monthly Charges (₹) *</label>
                       <input
                         type="number"
                         required={newPlaceType === 'Mess'}
                         value={newPlaceData.monthlyCharges}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, monthlyCharges: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Daily Food Charge (₹) *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Daily Food Charge (₹) *</label>
                       <input
                         type="number"
                         required={newPlaceType === 'Mess'}
                         value={newPlaceData.dailyCharges}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, dailyCharges: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Food Timing *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Food Timing *</label>
                       <input
                         type="text"
                         required={newPlaceType === 'Mess'}
-                        placeholder="e.g. Lunch 1-3, Dinner 8-10"
+                        placeholder="Lunch 1-3, Dinner 8-10"
                         value={newPlaceData.foodTiming}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, foodTiming: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Weekly Menu Description</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Weekly Menu Description</label>
                       <textarea
                         rows="2"
-                        placeholder="e.g. Monday veg paneer, Wednesday egg curry..."
+                        placeholder="Monday veg paneer, Wednesday egg curry..."
                         value={newPlaceData.menu}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, menu: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
                     <div className="space-y-2 flex flex-col justify-center">
-                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                      <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                         <input
                           type="checkbox"
                           checked={newPlaceData.veg}
                           onChange={(e) => setNewPlaceData({ ...newPlaceData, veg: e.target.checked })}
-                          className="rounded text-brand-600"
+                          className="rounded text-[#38BDF8]"
                         />
-                        <span>Serves Pure Veg</span>
+                        <span className="text-slate-350">Serves Pure Veg</span>
                       </label>
-                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                      <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                         <input
                           type="checkbox"
                           checked={newPlaceData.nonVeg}
                           onChange={(e) => setNewPlaceData({ ...newPlaceData, nonVeg: e.target.checked })}
-                          className="rounded text-brand-600"
+                          className="rounded text-[#38BDF8]"
                         />
-                        <span>Serves Non-Veg Options</span>
+                        <span className="text-slate-350">Serves Non-Veg Options</span>
                       </label>
                     </div>
                   </div>
@@ -736,41 +738,41 @@ export const Search = () => {
 
               {/* Shop specific inputs */}
               {newPlaceType === 'Shop' && (
-                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl space-y-4">
-                  <h4 className="text-xs font-bold text-brand-600 uppercase tracking-widest">Shop / Service Specifications</h4>
+                <div className="p-5 bg-slate-900 rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
+                  <h4 className="text-xs font-black text-[#38BDF8] uppercase tracking-widest">Shop / Service Specifications</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Shop Category *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Shop Category *</label>
                       <select
                         value={newPlaceData.category}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, category: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       >
-                        <option value="Restaurant & Cafe">Restaurant & Cafe</option>
-                        <option value="Medical Store">Medical Store</option>
-                        <option value="Stationery & Photocopy">Stationery & Photocopy</option>
-                        <option value="Tea Stall">Tea Stall</option>
-                        <option value="Book Store">Book Store</option>
+                        <option value="Restaurant & Cafe" className="bg-[#15152E]">Restaurant & Cafe</option>
+                        <option value="Medical Store" className="bg-[#15152E]">Medical Store</option>
+                        <option value="Stationery & Photocopy" className="bg-[#15152E]">Stationery & Photocopy</option>
+                        <option value="Tea Stall" className="bg-[#15152E]">Tea Stall</option>
+                        <option value="Book Store" className="bg-[#15152E]">Book Store</option>
                       </select>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Opening Time *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Opening Time *</label>
                       <input
                         type="text"
                         placeholder="e.g. 09:00 AM"
                         value={newPlaceData.openingTime}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, openingTime: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold">Closing Time *</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-white">Closing Time *</label>
                       <input
                         type="text"
                         placeholder="e.g. 10:00 PM"
                         value={newPlaceData.closingTime}
                         onChange={(e) => setNewPlaceData({ ...newPlaceData, closingTime: e.target.value })}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs"
+                        className="premium-input bg-[#15152E]"
                       />
                     </div>
                   </div>
@@ -778,14 +780,14 @@ export const Search = () => {
               )}
 
               {/* Description */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold">Detailed Description</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-white uppercase tracking-wider">Detailed Description</label>
                 <textarea
                   rows="3"
                   value={newPlaceData.description}
                   onChange={(e) => setNewPlaceData({ ...newPlaceData, description: e.target.value })}
                   placeholder="Tell students about pricing structures, wifi speeds, amenities, deposit refund rules..."
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-xs focus:outline-none"
+                  className="premium-input"
                 />
               </div>
 
@@ -797,7 +799,7 @@ export const Search = () => {
                 label="Listing Media / Room Photos"
               />
 
-              {/* Menu Card Uploads (Messes & Shops only) */}
+              {/* Menu Card Uploads */}
               {(newPlaceType === 'Mess' || newPlaceType === 'Shop') && (
                 <ImageUpload
                   images={newPlaceData.menuImages || []}
@@ -808,18 +810,18 @@ export const Search = () => {
               )}
 
               {/* Action buttons */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex justify-end space-x-3.5 pt-4 border-t border-[#2A2A3D]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="py-3 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition text-xs"
+                  className="py-3 px-6 rounded-xl font-black text-white bg-slate-900 border border-[#2A2A3D] hover:bg-slate-800 transition text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="py-3 px-6 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-500 shadow-md shadow-brand-500/10 transition text-xs flex items-center"
+                  className="py-3 px-6 rounded-xl font-black text-black bg-[#00D68F] border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-blue transition text-xs flex items-center"
                 >
                   {submitting ? 'Submitting for Verification...' : 'Submit Listing'}
                 </button>

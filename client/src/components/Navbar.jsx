@@ -54,15 +54,12 @@ export const Navbar = () => {
   // Listen to live socket notifications
   useSocket(
     (newNotif) => {
-      // Audio or toast alert can be played here
       fetchNotifications();
     },
     (newPlace) => {
-      // New hostel/mess/shop added
       fetchNotifications();
     },
     (newScam) => {
-      // Verified scam alert
       fetchNotifications();
     }
   );
@@ -105,16 +102,16 @@ export const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-3 z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between rounded-2xl border border-slate-200/50 dark:border-slate-800/40 glass-effect shadow-lg">
+    <nav className="sticky top-4 z-40 max-w-7xl mx-auto px-4">
+      <div className="px-5 h-16 flex items-center justify-between rounded-2xl border border-[#2A2A3D] bg-[#15152E] shadow-xl shadow-black/10 transition-all duration-200">
         {/* Logo */}
         <div className="flex-1 flex justify-start items-center">
-          <Link to="/" className="flex items-center space-x-2 group">
-            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-cyber-purple to-cyber-blue text-white font-black text-lg shadow-md hover:scale-105 hover:rotate-3 transition duration-200">
+          <Link to="/" className="flex items-center space-x-2.5 group">
+            <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00D68F] to-[#38BDF8] text-black font-extrabold text-xl border border-[#2A2A3D] shadow-[2px_2px_0px_#000000] hover:scale-105 hover:rotate-3 transition duration-200">
               C
             </span>
-            <span className="font-extrabold text-xl tracking-tight hidden sm:block">
-              Campus<span className="gradient-text-neon bg-gradient-to-r from-cyber-purple to-cyber-blue">Review</span>
+            <span className="font-bold text-xl tracking-tight hidden sm:block text-white">
+              Campus<span className="gradient-text-neon font-black">Review</span>
             </span>
           </Link>
         </div>
@@ -127,10 +124,10 @@ export const Navbar = () => {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition duration-200 ${
+                className={`px-4 py-1.5 rounded-xl text-xs font-black transition duration-150 border ${
                   active
-                    ? 'text-cyber-purple dark:text-cyber-cyan bg-slate-100 dark:bg-slate-800/50 font-bold shadow-sm'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-cyber-purple dark:hover:text-cyber-cyan hover:bg-slate-50 dark:hover:bg-slate-800/30'
+                    ? 'text-[#38BDF8] border-[#38BDF8] bg-[#38BDF8]/5'
+                    : 'text-white border-transparent hover:text-[#38BDF8] hover:bg-white/5'
                 }`}
               >
                 {link.name}
@@ -141,91 +138,86 @@ export const Navbar = () => {
           {isAuthenticated && user?.role === 'admin' && (
             <Link
               to="/admin"
-              className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center space-x-1.5 transition duration-200 ${
+              className={`px-4 py-1.5 rounded-xl text-xs font-black flex items-center space-x-1.5 transition duration-150 border ${
                 location.pathname === '/admin'
-                  ? 'text-cyber-pink bg-red-50 dark:bg-red-950/20 font-bold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-cyber-pink hover:bg-red-50/50 dark:hover:bg-red-950/10'
+                  ? 'text-[#EF4444] border-[#EF4444] bg-[#EF4444]/5'
+                  : 'text-white border-transparent hover:text-[#EF4444] hover:bg-white/5'
               }`}
             >
-              <Shield className="w-4 h-4" />
+              <Shield className="w-3.5 h-3.5" />
               <span>Admin Panel</span>
             </Link>
           )}
         </div>
 
         {/* Action Buttons (Right) */}
-        <div className="flex-1 flex justify-end items-center space-x-2 sm:space-x-4">
-          {/* Theme Toggle */}
-          <button
-            onClick={() => dispatch(toggleTheme())}
-            className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-            aria-label="Toggle theme"
-          >
-            {themeMode === 'dark' ? (
-              <Sun className="w-5 h-5 text-amber-500" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
-
+        <div className="flex-1 flex justify-end items-center space-x-3">
           {/* Notifications Dropdown */}
           {isAuthenticated && (
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="relative p-2.5 rounded-xl text-white hover:bg-white/10 transition-colors border border-transparent"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-4.5 h-4.5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-cyber-pink text-white rounded-full flex items-center justify-center text-[10px] font-bold">
+                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-[#EF4444] text-white rounded-full flex items-center justify-center text-[9px] font-black border border-white">
                     {unreadCount}
                   </span>
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden glass-effect animate-slide-down">
-                  <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
-                    <span className="font-bold text-sm">Notifications</span>
+                <div className="absolute right-0 mt-3 w-80 bg-[#15152E] border border-[#2A2A3D] rounded-2xl shadow-xl shadow-black/20 overflow-hidden z-50">
+                  <div className="flex items-center justify-between p-4 pb-3 border-b border-[#2A2A3D]">
+                    <span className="font-bold text-sm text-white">Notifications</span>
                     {unreadCount > 0 && (
                       <button
                         onClick={markAllRead}
-                        className="text-xs text-cyber-purple dark:text-cyber-cyan hover:underline"
+                        className="text-xs font-black text-[#38BDF8] hover:underline"
                       >
-                        Mark all as read
+                        Mark all read
                       </button>
                     )}
                   </div>
                   <div className="max-h-64 overflow-y-auto">
                     {notifications.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-slate-400 dark:text-slate-500">
-                        No notifications yet.
+                      <div className="p-6 text-center text-xs text-slate-400 font-medium">
+                        All caught up! No notifications.
                       </div>
                     ) : (
                       notifications.map((notif) => (
                         <div
                           key={notif._id}
-                          onClick={() => markRead(notif._id)}
-                          className={`p-3 border-b border-slate-50 dark:border-slate-800/40 flex items-start space-x-3 cursor-pointer transition ${
+                          onClick={() => {
+                            markRead(notif._id);
+                            if (notif.placeId) {
+                              navigate(`/place/${notif.placeType}/${notif.placeId}`);
+                            } else if (notif.type === 'scam_verified') {
+                              navigate('/scams');
+                            }
+                            setNotificationsOpen(false);
+                          }}
+                          className={`p-3.5 border-b border-[#2A2A3D] flex items-start space-x-3 cursor-pointer transition ${
                             notif.isRead
-                              ? 'bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/20'
-                              : 'bg-brand-50/30 dark:bg-brand-950/10 hover:bg-brand-50/50 dark:hover:bg-brand-950/20'
+                              ? 'bg-transparent hover:bg-white/5'
+                              : 'bg-[#EF4444]/10 hover:bg-[#EF4444]/20'
                           }`}
                         >
                           <div className="mt-0.5 flex-shrink-0">
                             {notif.type === 'scam_verified' ? (
-                              <AlertTriangle className="w-4 h-4 text-cyber-pink" />
+                              <AlertTriangle className="w-4 h-4 text-[#EF4444]" />
                             ) : notif.type === 'review_approval' ? (
-                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <CheckCircle className="w-4 h-4 text-[#00D68F]" />
                             ) : (
-                              <BookOpen className="w-4 h-4 text-cyber-purple" />
+                              <BookOpen className="w-4 h-4 text-[#38BDF8]" />
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                            <p className="text-xs text-white font-semibold leading-relaxed">
                               {notif.message}
                             </p>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-1">
+                            <span className="text-[10px] text-slate-400 block mt-1 font-bold">
                               {new Date(notif.createdAt).toLocaleDateString()}
                             </span>
                           </div>
@@ -240,32 +232,32 @@ export const Navbar = () => {
 
           {/* Profile Dropdown or Login Trigger */}
           {isAuthenticated ? (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <Link
                 to={`/profile/${user.id}`}
-                className="flex items-center space-x-2 p-1.5 pr-3 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition"
+                className="flex items-center space-x-2 p-1 pr-3 rounded-xl border border-[#2A2A3D] bg-[#0D0D1A] hover:bg-white/5 transition"
               >
                 <img
-                  src={user.avatar || 'https://picsum.photos/150'}
+                  src={user.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(user.name)}`}
                   alt={user.name}
-                  className="w-7 h-7 rounded-full object-cover border border-slate-300 dark:border-slate-600"
+                  className="w-7 h-7 rounded-full object-cover border border-[#2A2A3D]"
                 />
-                <span className="text-xs font-semibold max-w-[80px] truncate hidden sm:inline-block">
+                <span className="text-xs font-black max-w-[80px] truncate hidden sm:inline-block text-white">
                   {user.name.split(' ')[0]}
                 </span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-xl text-slate-500 hover:text-cyber-pink hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="p-2.5 rounded-xl text-white hover:text-[#EF4444] hover:bg-white/5 transition"
                 title="Sign Out"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4.5 h-4.5" />
               </button>
             </div>
           ) : (
             <button
               onClick={() => dispatch(openLoginModal())}
-              className="py-2 px-4 rounded-xl text-sm font-semibold text-white gradient-bg-neon hover:opacity-90 shadow-md shadow-brand-500/10 transition"
+              className="py-2 px-5 rounded-xl text-xs font-black text-black bg-[#00D68F] border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#FFFFFF] transition duration-150"
             >
               Sign In
             </button>
@@ -274,22 +266,22 @@ export const Navbar = () => {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 md:hidden transition"
+            className="p-2.5 rounded-xl text-white hover:bg-white/10 md:hidden transition border border-transparent"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu Panel */}
       {mobileMenuOpen && (
-        <div className="md:hidden mt-2 border border-slate-200/50 dark:border-slate-800/40 px-4 pt-2 pb-4 space-y-1 rounded-2xl bg-white/90 dark:bg-[#0f172a]/95 glass-effect shadow-xl">
+        <div className="md:hidden mt-2 border border-[#2A2A3D] px-4 pt-2 pb-4 space-y-1 rounded-2xl bg-[#15152E] shadow-xl z-50 relative">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-base font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+              className="block px-3 py-2.5 rounded-xl text-sm font-black text-white hover:bg-white/5 hover:text-[#38BDF8]"
             >
               {link.name}
             </Link>
@@ -298,7 +290,7 @@ export const Navbar = () => {
             <Link
               to="/admin"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-base font-semibold text-cyber-pink hover:bg-red-50 dark:hover:bg-red-950/10"
+              className="block px-3 py-2.5 rounded-xl text-sm font-black text-[#EF4444] hover:bg-[#EF4444]/10"
             >
               Admin Panel
             </Link>

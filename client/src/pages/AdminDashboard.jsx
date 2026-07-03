@@ -291,10 +291,10 @@ export const AdminDashboard = () => {
   if (loading || !stats) {
     return (
       <div className="max-w-4xl mx-auto py-20 px-4 text-center animate-pulse space-y-6">
-        <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-1/4 mx-auto"></div>
+        <div className="h-8 bg-[#15152E] border border-[#2A2A3D] rounded w-1/4 mx-auto"></div>
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div>
+            <div key={i} className="h-24 bg-[#15152E] border border-[#2A2A3D] rounded-3xl"></div>
           ))}
         </div>
       </div>
@@ -352,7 +352,7 @@ export const AdminDashboard = () => {
       <div className="flex justify-start print:hidden">
         <Link
           to="/"
-          className="inline-flex items-center space-x-2 text-xs font-black text-slate-500 hover:text-cyber-purple dark:text-slate-400 dark:hover:text-cyber-cyan transition-all duration-200 bg-white/50 dark:bg-slate-900/50 px-4 py-2.5 rounded-xl border border-slate-200/40 dark:border-slate-800/40 shadow-sm hover:shadow-md"
+          className="inline-flex items-center space-x-2 text-xs font-black text-slate-500 hover:text-cyber-purple dark:text-slate-400 dark:hover:text-cyber-cyan transition-all duration-200 bg-[#15152E] px-4 py-2.5 rounded-xl border border-[#2A2A3D] shadow-sm hover:border-white transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
@@ -360,7 +360,7 @@ export const AdminDashboard = () => {
       </div>
       
       {/* Title */}
-      <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+      <div className="flex items-center space-x-3 border-b border-[#2A2A3D] pb-4">
         <Shield className="w-8 h-8 text-indigo-600" />
         <div>
           <h1 className="text-3xl font-black tracking-tight font-sans">Administrator Dashboard</h1>
@@ -369,14 +369,14 @@ export const AdminDashboard = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-100 dark:border-slate-850/40 gap-6 overflow-x-auto print:hidden">
+      <div className="flex border-b border-[#2A2A3D] gap-6 overflow-x-auto print:hidden">
         {['Overview', 'Analytics Dashboard', 'Approve Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`pb-3 text-xs font-bold transition-all relative flex-shrink-0 ${
               activeTab === tab
-                ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400'
+                ? 'text-[#38BDF8] border-b-2 border-[#38BDF8]'
                 : 'text-slate-400 hover:text-slate-600'
             }`}
           >
@@ -393,7 +393,7 @@ export const AdminDashboard = () => {
             {overviewCards.map((card) => (
               <div
                 key={card.label}
-                className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl flex items-center justify-between shadow-sm"
+                className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl flex items-center justify-between shadow-sm"
               >
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-slate-400">{card.label}</span>
@@ -408,7 +408,7 @@ export const AdminDashboard = () => {
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
+            <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm space-y-4">
               <h3 className="text-sm font-bold font-sans">Highest Rated Places</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -422,7 +422,7 @@ export const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
+            <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm space-y-4">
               <h3 className="text-sm font-bold font-sans">Most Active Reviewers (Reviews written)</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -444,7 +444,7 @@ export const AdminDashboard = () => {
         <div className="space-y-8 animate-fade-in">
           
           {/* Dashboard Control Bar */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm print:hidden">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm print:hidden">
             
             {/* Filter buttons */}
             <div className="flex flex-wrap items-center gap-2">
@@ -462,7 +462,7 @@ export const AdminDashboard = () => {
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border ${
                     analyticsRange === btn.value
                       ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-500/10'
-                      : 'bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-800 text-slate-600 dark:text-slate-350 hover:bg-slate-100'
+                      : 'bg-[#0D0D1A] border-[#2A2A3D] text-slate-300 hover:border-white hover:bg-[#15152E]'
                   }`}
                 >
                   {btn.label}
@@ -472,19 +472,19 @@ export const AdminDashboard = () => {
 
             {/* Custom Dates inputs */}
             {analyticsRange === 'custom' && (
-              <div className="flex flex-wrap items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-4 py-1">
+              <div className="flex flex-wrap items-center gap-2 border-l border-[#2A2A3D] pl-4 py-1">
                 <input
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-1 text-xs rounded-xl focus:outline-none"
+                  className="bg-[#0D0D1A] border border-[#2A2A3D] px-3 py-1 text-xs rounded-xl focus:outline-none"
                 />
                 <span className="text-slate-400 text-xs">to</span>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-1 text-xs rounded-xl focus:outline-none"
+                  className="bg-[#0D0D1A] border border-[#2A2A3D] px-3 py-1 text-xs rounded-xl focus:outline-none"
                 />
                 <button
                   onClick={handleApplyCustomFilter}
@@ -496,10 +496,10 @@ export const AdminDashboard = () => {
             )}
 
             {/* Exports controls */}
-            <div className="flex items-center gap-2 self-stretch md:self-auto border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-4 md:pt-0 pl-0 md:pl-4">
+            <div className="flex items-center gap-2 self-stretch md:self-auto border-t md:border-t-0 md:border-l border-[#2A2A3D] pt-4 md:pt-0 pl-0 md:pl-4">
               <button
                 onClick={() => handleExport('csv')}
-                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-50 border border-slate-200 dark:bg-slate-850/40 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#0D0D1A] border border-[#2A2A3D] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:border-white transition"
                 title="Export CSV"
               >
                 <Download className="w-3.5 h-3.5 text-slate-400" />
@@ -507,7 +507,7 @@ export const AdminDashboard = () => {
               </button>
               <button
                 onClick={() => handleExport('excel')}
-                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-50 border border-slate-200 dark:bg-slate-850/40 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#0D0D1A] border border-[#2A2A3D] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:border-white transition"
                 title="Export Excel"
               >
                 <FileText className="w-3.5 h-3.5 text-slate-400" />
@@ -515,7 +515,7 @@ export const AdminDashboard = () => {
               </button>
               <button
                 onClick={handlePrintPDF}
-                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-50 border border-slate-200 dark:bg-slate-850/40 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#0D0D1A] border border-[#2A2A3D] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:border-white transition"
                 title="Print Dashboard or Save to PDF"
               >
                 <Eye className="w-3.5 h-3.5 text-slate-400" />
@@ -542,7 +542,7 @@ export const AdminDashboard = () => {
                 ].map((card, idx) => (
                   <div
                     key={idx}
-                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden"
+                    className="bg-[#15152E] border border-[#2A2A3D] p-5 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden"
                   >
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
@@ -568,7 +568,7 @@ export const AdminDashboard = () => {
                 ].map((card, idx) => (
                   <div
                     key={idx}
-                    className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between ${card.color}`}
+                    className={`bg-[#15152E] border border-[#2A2A3D] p-5 rounded-3xl shadow-sm flex flex-col justify-between ${card.color}`}
                   >
                     <div className="flex items-center justify-between pb-3 border-b border-slate-50 dark:border-slate-800/60 mb-3">
                       <span className="text-[10px] font-black text-slate-450 uppercase">{card.title}</span>
@@ -592,10 +592,10 @@ export const AdminDashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
                 {/* Visitor & Signup Trend Chart */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="text-sm font-bold font-sans">Visitor Traffic & Signup Trend</h3>
-                    <span className="text-[10px] bg-slate-50 border px-2 py-0.5 rounded text-slate-400 font-bold">Daily Aggregations</span>
+                    <span className="text-[10px] bg-[#0D0D1A] border border-[#2A2A3D] px-2 py-0.5 rounded text-slate-400 font-bold">Daily Aggregations</span>
                   </div>
                   <div className="h-72">
                     {trendChartData.length === 0 ? (
@@ -628,10 +628,10 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Reviews Written Trend Chart */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="text-sm font-bold font-sans">Reviews Written Trend</h3>
-                    <span className="text-[10px] bg-slate-50 border px-2 py-0.5 rounded text-slate-400 font-bold">Reviews Count</span>
+                    <span className="text-[10px] bg-[#0D0D1A] border border-[#2A2A3D] px-2 py-0.5 rounded text-slate-400 font-bold">Reviews Count</span>
                   </div>
                   <div className="h-72">
                     {reviewsTrendData.length === 0 ? (
@@ -656,7 +656,7 @@ export const AdminDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* Browser Share */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
                   <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Browser Distribution</h3>
                   <div className="h-48">
                     {browserPieData.length === 0 ? (
@@ -686,7 +686,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Device Distribution */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
                   <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Device Distribution</h3>
                   <div className="h-48">
                     {devicePieData.length === 0 ? (
@@ -716,7 +716,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Country Share */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
                   <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Country Distribution</h3>
                   <div className="h-48">
                     {countryPieData.length === 0 ? (
@@ -750,7 +750,7 @@ export const AdminDashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
                 {/* Top Visited Pages */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm">
                   <h3 className="text-xs font-black uppercase text-slate-455 mb-4">Top Visited Pages</h3>
                   <div className="space-y-3">
                     {analyticsData.breakdowns?.topPages?.length === 0 ? (
@@ -758,7 +758,7 @@ export const AdminDashboard = () => {
                     ) : (
                       analyticsData.breakdowns.topPages.map((page, idx) => (
                         <div key={idx} className="flex justify-between items-center border-b border-slate-50 dark:border-slate-800/40 pb-2">
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[350px]" title={page._id}>
+                          <span className="text-xs font-bold text-white truncate max-w-[350px]" title={page._id}>
                             {page._id || '/'}
                           </span>
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
@@ -771,7 +771,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Top Search Keywords */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm">
                   <h3 className="text-xs font-black uppercase text-slate-455 mb-4">Top Search Queries</h3>
                   <div className="space-y-3">
                     {analyticsData.breakdowns?.topSearchKeywords?.length === 0 ? (
@@ -779,7 +779,7 @@ export const AdminDashboard = () => {
                     ) : (
                       analyticsData.breakdowns.topSearchKeywords.map((kw, idx) => (
                         <div key={idx} className="flex justify-between items-center border-b border-slate-50 dark:border-slate-800/40 pb-2">
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[350px]">
+                          <span className="text-xs font-bold text-white truncate max-w-[350px]">
                             "{kw._id}"
                           </span>
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400">
@@ -796,7 +796,7 @@ export const AdminDashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
                 {/* Geographic break down (Region, City) */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-5">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm space-y-5">
                   <h3 className="text-xs font-black uppercase text-slate-455 mb-1">Geographic Breakdowns</h3>
                   
                   <div className="grid grid-cols-2 gap-6">
@@ -805,7 +805,7 @@ export const AdminDashboard = () => {
                       <div className="space-y-2">
                         {analyticsData.breakdowns?.states?.map((st, i) => (
                           <div key={i} className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{st._id || 'Unknown'}</span>
+                            <span className="font-bold text-white truncate max-w-[120px]">{st._id || 'Unknown'}</span>
                             <span className="text-slate-400">{st.count}</span>
                           </div>
                         ))}
@@ -816,7 +816,7 @@ export const AdminDashboard = () => {
                       <div className="space-y-2">
                         {analyticsData.breakdowns?.cities?.map((ci, i) => (
                           <div key={i} className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{ci._id || 'Unknown'}</span>
+                            <span className="font-bold text-white truncate max-w-[120px]">{ci._id || 'Unknown'}</span>
                             <span className="text-slate-400">{ci.count}</span>
                           </div>
                         ))}
@@ -826,7 +826,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* API and System Errors Registry */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
+                <div className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl shadow-sm flex flex-col justify-between">
                   <div>
                     <h3 className="text-xs font-black uppercase text-slate-455 mb-4">Error Diagnostics</h3>
                     
@@ -834,7 +834,7 @@ export const AdminDashboard = () => {
                       <div className="flex items-center justify-between border-b dark:border-slate-800 pb-2">
                         <div className="flex items-center space-x-2">
                           <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Internal Server Errors (500+)</span>
+                          <span className="text-xs font-bold text-white">Internal Server Errors (500+)</span>
                         </div>
                         <span className="text-xs font-black text-slate-600 dark:text-slate-300">{analyticsData.breakdowns.errors.apiErrors} triggers</span>
                       </div>
@@ -842,7 +842,7 @@ export const AdminDashboard = () => {
                       <div className="flex items-center justify-between border-b dark:border-slate-800 pb-2">
                         <div className="flex items-center space-x-2">
                           <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Page Not Found Errors (404)</span>
+                          <span className="text-xs font-bold text-white">Page Not Found Errors (404)</span>
                         </div>
                         <span className="text-xs font-black text-slate-600 dark:text-slate-300">{analyticsData.breakdowns.errors.notFoundErrors} occurrences</span>
                       </div>
@@ -850,7 +850,7 @@ export const AdminDashboard = () => {
                       <div className="flex items-center justify-between border-b dark:border-slate-800 pb-2">
                         <div className="flex items-center space-x-2">
                           <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Authentication & Ban Failures</span>
+                          <span className="text-xs font-bold text-white">Authentication & Ban Failures</span>
                         </div>
                         <span className="text-xs font-black text-slate-600 dark:text-slate-300">{analyticsData.breakdowns.errors.authErrors} events</span>
                       </div>
@@ -870,8 +870,8 @@ export const AdminDashboard = () => {
 
       {/* 3. APPROVE LISTINGS TAB */}
       {activeTab === 'Approve Listings' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
+          <div className="p-6 border-b border-[#2A2A3D]">
             <h3 className="font-bold text-sm">Listing Submissions Pending Approval ({unapprovedPlaces.length})</h3>
           </div>
           {unapprovedPlaces.length === 0 ? (
@@ -893,7 +893,7 @@ export const AdminDashboard = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {unapprovedPlaces.map((place) => (
                     <tr key={place._id}>
-                      <td className="p-4 font-bold text-slate-880 dark:text-slate-200">{place.name}</td>
+                      <td className="p-4 font-bold text-white">{place.name}</td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]">
                           {place.type}
@@ -928,8 +928,8 @@ export const AdminDashboard = () => {
 
       {/* 4. MODERATE SCAMS TAB */}
       {activeTab === 'Moderate Scams' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
+          <div className="p-6 border-b border-[#2A2A3D]">
             <h3 className="font-bold text-sm">Scam Reports Registry Moderation</h3>
           </div>
           {scamReports.length === 0 ? (
@@ -951,7 +951,7 @@ export const AdminDashboard = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {scamReports.map((scam) => (
                     <tr key={scam._id}>
-                      <td className="p-4 font-bold text-slate-880 dark:text-slate-200">{scam.title}</td>
+                      <td className="p-4 font-bold text-white">{scam.title}</td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-600 font-bold text-[10px]">
                           {scam.category}
@@ -1005,8 +1005,8 @@ export const AdminDashboard = () => {
 
       {/* 5. USER ACCOUNTS TAB */}
       {activeTab === 'User Accounts' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
+          <div className="p-6 border-b border-[#2A2A3D]">
             <h3 className="font-bold text-sm">Student Registry & Ban moderation</h3>
           </div>
           {allUsers.length === 0 ? (
@@ -1030,7 +1030,7 @@ export const AdminDashboard = () => {
                     <tr key={u._id}>
                       <td className="p-4 flex items-center space-x-3">
                         <img src={u.avatar || 'https://picsum.photos/150'} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
-                        <span className="font-bold text-slate-880 dark:text-slate-200">{u.name}</span>
+                        <span className="font-bold text-white">{u.name}</span>
                       </td>
                       <td className="p-4">{u.email}</td>
                       <td className="p-4 capitalize">{u.role}</td>
@@ -1077,8 +1077,8 @@ export const AdminDashboard = () => {
 
       {/* 6. MODERATE REVIEWS TAB */}
       {activeTab === 'Moderate Reviews' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
+          <div className="p-6 border-b border-[#2A2A3D]">
             <h3 className="font-bold text-sm">Flagged Reviews Moderation ({flaggedReviews.length})</h3>
           </div>
           {flaggedReviews.length === 0 ? (
@@ -1108,7 +1108,7 @@ export const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-slate-880 dark:text-slate-200">{rev.author?.name}</div>
+                        <div className="font-bold text-white">{rev.author?.name}</div>
                         <div className="text-[10px] text-slate-400">{rev.author?.email}</div>
                       </td>
                       <td className="p-4 font-extrabold text-amber-500">{rev.rating} ★</td>
@@ -1119,7 +1119,7 @@ export const AdminDashboard = () => {
                       <td className="p-4">
                         <button
                           onClick={() => handleDeleteReview(rev._id)}
-                          className="p-1.5 text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded flex items-center gap-1 font-bold text-xs"
+                          className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded flex items-center gap-1 font-bold text-xs"
                           title="Delete Fake/Flagged Review"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1138,10 +1138,10 @@ export const AdminDashboard = () => {
       {/* Student Activity Log Modal */}
       {isActivityModalOpen && selectedUserForActivity && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl glass-effect p-6 overflow-hidden flex flex-col max-h-[85vh]">
+          <div className="relative w-full max-w-4xl bg-[#15152E] border border-[#2A2A3D] rounded-3xl shadow-2xl glass-effect p-6 overflow-hidden flex flex-col max-h-[85vh]">
             
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4 flex-shrink-0">
+            <div className="flex items-center justify-between border-b border-[#2A2A3D] pb-4 mb-4 flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <img
                   src={selectedUserForActivity.avatar || 'https://picsum.photos/150'}
@@ -1164,13 +1164,13 @@ export const AdminDashboard = () => {
                 }}
                 className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition"
               >
-                <XCircle className="w-6 h-6 text-slate-400 hover:text-slate-650 dark:hover:text-slate-200" />
+                <XCircle className="w-6 h-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" />
               </button>
             </div>
 
             {/* Filter Section */}
             {!activityLoading && userActivityLogs.length > 0 && (
-              <div className="flex justify-between items-center mb-4 flex-shrink-0 bg-slate-50 dark:bg-slate-950/20 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+              <div className="flex justify-between items-center mb-4 flex-shrink-0 bg-slate-50 dark:bg-slate-950/20 p-3 rounded-2xl border border-[#2A2A3D]/80">
                 <span className="text-xs text-slate-500 font-semibold">
                   Showing {filteredActivityLogs.length} of {userActivityLogs.length} logged activities
                 </span>
@@ -1179,7 +1179,7 @@ export const AdminDashboard = () => {
                   <select
                     value={activityActionFilter}
                     onChange={(e) => setActivityActionFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-1 px-3.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500"
+                    className="bg-[#15152E] border border-[#2A2A3D] py-1 px-3.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500"
                   >
                     <option value="">All Actions</option>
                     {Array.from(new Set(userActivityLogs.map(log => log.action))).map((act) => (
@@ -1208,7 +1208,7 @@ export const AdminDashboard = () => {
                   {filteredActivityLogs.map((log) => (
                     <div
                       key={log._id}
-                      className="p-4 bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl space-y-3 shadow-sm transition hover:shadow"
+                      className="p-4 bg-slate-50 dark:bg-slate-950/20 border border-[#2A2A3D]/80 rounded-2xl space-y-3 shadow-sm transition hover:shadow"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-850 pb-2">
                         <div className="flex items-center space-x-2">
@@ -1221,7 +1221,7 @@ export const AdminDashboard = () => {
                                 : log.action === 'Page View'
                                 ? 'bg-indigo-500/10 text-indigo-600'
                                 : log.action === 'JavaScript Error'
-                                ? 'bg-red-500/10 text-red-650'
+                                ? 'bg-red-500/10 text-red-600'
                                 : 'bg-brand-500/10 text-brand-600'
                             }`}
                           >
@@ -1247,7 +1247,7 @@ export const AdminDashboard = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                         <div className="space-y-1">
                           <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Target Page / Endpoint</span>
-                          <div className="font-mono bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 px-2.5 py-1.5 rounded-xl truncate text-[11px]" title={log.currentPage || log.apiEndpoint}>
+                          <div className="font-mono bg-[#15152E] border border-[#2A2A3D] px-2.5 py-1.5 rounded-xl truncate text-[11px]" title={log.currentPage || log.apiEndpoint}>
                             {log.httpMethod && <span className="text-slate-400 mr-1.5 font-bold uppercase">{log.httpMethod}</span>}
                             {log.currentPage || log.apiEndpoint}
                           </div>
@@ -1256,7 +1256,7 @@ export const AdminDashboard = () => {
                         {log.country && (
                           <div className="space-y-1">
                             <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Geolocation Context</span>
-                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 px-2.5 py-1.5 rounded-xl text-[11px] text-slate-650 dark:text-slate-350">
+                            <div className="bg-[#15152E] border border-[#2A2A3D] px-2.5 py-1.5 rounded-xl text-[11px] text-slate-300">
                               📍 {log.city ? `${log.city}, ` : ''}{log.state ? `${log.state}, ` : ''}{log.country}
                             </div>
                           </div>
@@ -1264,7 +1264,7 @@ export const AdminDashboard = () => {
                       </div>
 
                       {log.requestBody && Object.keys(log.requestBody).length > 0 && (
-                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 p-2.5 rounded-xl">
+                        <div className="bg-[#15152E] border border-[#2A2A3D] p-2.5 rounded-xl">
                           <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider mb-1">Payload / Details</span>
                           <pre className="text-[10px] font-mono text-slate-500 overflow-x-auto whitespace-pre-wrap max-h-[80px]">
                             {JSON.stringify(log.requestBody, null, 2)}
@@ -1278,14 +1278,14 @@ export const AdminDashboard = () => {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-slate-100 dark:border-slate-800 pt-4 mt-4 flex justify-end flex-shrink-0">
+            <div className="border-t border-[#2A2A3D] pt-4 mt-4 flex justify-end flex-shrink-0">
               <button
                 onClick={() => {
                   setIsActivityModalOpen(false);
                   setSelectedUserForActivity(null);
                   setUserActivityLogs([]);
                 }}
-                className="py-2.5 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition text-xs"
+                className="py-2.5 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-[#15152E] border border-[#2A2A3D] dark:hover:bg-slate-700 transition text-xs"
               >
                 Close Logs
               </button>
