@@ -133,4 +133,4 @@ server.listen(PORT, () => {
   logger.info(`Campus Review Hub Server running on port ${PORT}`);
 });
 
-export default server;
+export default app;
