@@ -6,8 +6,9 @@ import {
   deleteReview,
   toggleLikeReview,
   flagReview,
+  getFlaggedReviews,
 } from '../controllers/reviewController.js';
-import { protect } from '../middleware/auth.js';
+import { protect, adminOnly } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ const reviewValidationRules = [
   body('reviewText').notEmpty().withMessage('Review content is required').trim(),
 ];
 
+router.get('/flagged', protect, adminOnly, getFlaggedReviews);
 router.post('/', protect, reviewValidationRules, validateRequest, createReview);
 router.put('/:id', protect, reviewValidationRules, validateRequest, updateReview);
 router.delete('/:id', protect, deleteReview);

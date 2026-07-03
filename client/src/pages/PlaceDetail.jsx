@@ -401,6 +401,26 @@ export const PlaceDetail = () => {
               </div>
             </div>
           )}
+
+          {/* Menu / Catalog Images */}
+          {place.menuImages?.length > 0 && (
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Menu Cards / Price Lists</span>
+              <div className="flex flex-wrap gap-3">
+                {place.menuImages.map((img, idx) => (
+                  <a
+                    key={img.fileId || idx}
+                    href={img.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200/60 dark:border-slate-800/80 hover:scale-[1.03] transition duration-200"
+                  >
+                    <img src={img.url} alt="Menu page" className="w-full h-full object-cover" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sidebar rating details */}

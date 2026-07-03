@@ -14,6 +14,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import logger from './config/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { requestLogger } from './middleware/requestLogger.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -95,14 +96,8 @@ app.use(xss());
 // Compress HTTP responses
 app.use(compression());
 
-// Request logging with Morgan and Winston
-app.use(
-  morgan('combined', {
-    stream: {
-      write: (message) => logger.http(message.trim()),
-    },
-  })
-);
+// Request logging with custom IP, User info, and Input details
+app.use(requestLogger);
 
 // API Rate Limiter
 const apiLimiter = rateLimit({

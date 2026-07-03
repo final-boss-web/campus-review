@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,6 +11,14 @@
   
   body.dark {
     @apply bg-[#0b0f19] text-slate-100;
+  }
+
+  h1, h2, h3, .heading {
+    font-family: 'Poppins', sans-serif !important;
+  }
+
+  body, p {
+    font-family: 'Inter', sans-serif;
   }
 
   /* Custom Scrollbar */

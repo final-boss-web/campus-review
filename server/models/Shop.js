@@ -14,6 +14,13 @@ const ShopSchema = new mongoose.Schema(
         thumbnailUrl: { type: String },
       },
     ],
+    menuImages: [
+      {
+        url: { type: String, required: true },
+        fileId: { type: String, required: true },
+        thumbnailUrl: { type: String },
+      },
+    ],
     address: {
       type: String,
       required: true,

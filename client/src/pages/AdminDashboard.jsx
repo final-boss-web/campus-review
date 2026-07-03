@@ -62,12 +62,13 @@ export const AdminDashboard = () => {
       setStats(data);
 
       // 2. Fetch unapproved places (both hostels, messes, shops with approved = false)
-      const [hRes, mRes, sRes, uRes, scRes] = await Promise.all([
+      const [hRes, mRes, sRes, uRes, scRes, rRes] = await Promise.all([
         api.get('/places?type=Hostel&approvedOnly=false'),
         api.get('/places?type=Mess&approvedOnly=false'),
         api.get('/places?type=Shop&approvedOnly=false'),
         api.get('/users'), // admin route
         api.get('/scams'),
+        api.get('/reviews/flagged'),
       ]);
 
       const combinedUnapproved = [
@@ -79,14 +80,7 @@ export const AdminDashboard = () => {
       setUnapprovedPlaces(combinedUnapproved);
       setAllUsers(uRes.data);
       setScamReports(scRes.data);
-
-      // Filter reviews that are flagged (have flags.length > 0)
-      // Let's query details or simulate from reviews
-      const allReviews = data.recent?.recentReviews || [];
-      // We can also make an endpoint to fetch reviews, but let's query all places and get reviews
-      // To keep it simple, we'll extract reviews with flags from all places
-      const mockFlagged = [];
-      setFlaggedReviews(mockFlagged);
+      setFlaggedReviews(rRes.data);
     } catch (err) {
       console.error('Error fetching admin data:', err);
     } finally {
@@ -148,6 +142,18 @@ export const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Are you sure you want to delete this flagged review?')) return;
+    try {
+      await api.delete(`/reviews/${reviewId}`);
+      setFlaggedReviews(flaggedReviews.filter((r) => r._id !== reviewId));
+      alert('Review deleted successfully.');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete review.');
+    }
+  };
+
   if (loading || !stats) {
     return (
       <div className="max-w-4xl mx-auto py-20 px-4 text-center animate-pulse space-y-6">
@@ -204,7 +210,7 @@ export const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex border-b border-slate-100 dark:border-slate-850/40 gap-6">
-        {['Overview', 'Approve Listings', 'Moderate Scams', 'User Accounts'].map((tab) => (
+        {['Overview', 'Approve Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -454,6 +460,66 @@ export const AdminDashboard = () => {
                             {u.status === 'active' ? 'Ban User' : 'Unban'}
                           </button>
                         )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 5. MODERATE REVIEWS TAB */}
+      {activeTab === 'Moderate Reviews' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="font-bold text-sm">Flagged Reviews Moderation ({flaggedReviews.length})</h3>
+          </div>
+          {flaggedReviews.length === 0 ? (
+            <div className="p-12 text-center text-xs text-slate-400">
+              No reviews have been flagged by the community.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-500">
+                <thead className="bg-slate-50 dark:bg-slate-950 font-bold uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="p-4">Place</th>
+                    <th className="p-4">Reviewer</th>
+                    <th className="p-4">Rating</th>
+                    <th className="p-4">Comment</th>
+                    <th className="p-4">Flags</th>
+                    <th className="p-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {flaggedReviews.map((rev) => (
+                    <tr key={rev._id}>
+                      <td className="p-4 font-bold text-slate-850 dark:text-slate-100">
+                        {rev.placeId?.name || 'Unknown Place'}
+                        <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[9px] uppercase font-bold">
+                          {rev.placeType}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="font-bold text-slate-800 dark:text-slate-200">{rev.author?.name}</div>
+                        <div className="text-[10px] text-slate-400">{rev.author?.email}</div>
+                      </td>
+                      <td className="p-4 font-extrabold text-amber-500">{rev.rating} ★</td>
+                      <td className="p-4 max-w-xs truncate leading-relaxed" title={rev.reviewText}>
+                        {rev.reviewText}
+                      </td>
+                      <td className="p-4 font-black text-red-500">{rev.flags?.length} flags</td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => handleDeleteReview(rev._id)}
+                          className="p-1.5 text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded flex items-center gap-1 font-bold text-xs"
+                          title="Delete Fake/Flagged Review"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span>Delete</span>
+                        </button>
                       </td>
                     </tr>
                   ))}

@@ -63,6 +63,7 @@ export const Search = () => {
     description: '',
     nearbyDistance: '0.5',
     images: [],
+    menuImages: [],
     ac: false,
     wifi: false,
     laundry: false,
@@ -173,6 +174,7 @@ export const Search = () => {
         payload.dailyCharges = parseFloat(newPlaceData.dailyCharges) || 0;
         payload.foodTiming = newPlaceData.foodTiming;
         payload.menu = newPlaceData.menu;
+        payload.menuImages = newPlaceData.menuImages;
         payload.veg = newPlaceData.veg;
         payload.nonVeg = newPlaceData.nonVeg;
         payload.contact = newPlaceData.phone; // map contact
@@ -180,6 +182,7 @@ export const Search = () => {
         payload.openingTime = newPlaceData.openingTime;
         payload.closingTime = newPlaceData.closingTime;
         payload.category = newPlaceData.category;
+        payload.menuImages = newPlaceData.menuImages;
       }
 
       const { data } = await api.post('/places', payload);
@@ -203,6 +206,7 @@ export const Search = () => {
         description: '',
         nearbyDistance: '0.5',
         images: [],
+        menuImages: [],
         ac: false,
         wifi: false,
         laundry: false,
@@ -245,13 +249,15 @@ export const Search = () => {
           <h1 className="text-4xl font-extrabold tracking-tight font-sans">Discover Local Places</h1>
           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Search & verified student filter logs</p>
         </div>
-        <button
-          onClick={handleAddButtonClick}
-          className="flex items-center space-x-2 py-3 px-6 bg-gradient-to-r from-cyber-purple to-brand-600 hover:opacity-95 text-white rounded-2xl shadow-lg shadow-brand-500/10 font-black transition duration-200 text-sm hover:scale-[1.02]"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Listing</span>
-        </button>
+        {user?.role === 'admin' && (
+          <button
+            onClick={handleAddButtonClick}
+            className="flex items-center space-x-2 py-3 px-6 bg-gradient-to-r from-cyber-purple to-brand-600 hover:opacity-95 text-white rounded-2xl shadow-lg shadow-brand-500/10 font-black transition duration-200 text-sm hover:scale-[1.02]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Listing</span>
+          </button>
+        )}
       </div>
 
       {/* Type Toggle Grid */}
@@ -790,6 +796,16 @@ export const Search = () => {
                 maxFiles={5}
                 label="Listing Media / Room Photos"
               />
+
+              {/* Menu Card Uploads (Messes & Shops only) */}
+              {(newPlaceType === 'Mess' || newPlaceType === 'Shop') && (
+                <ImageUpload
+                  images={newPlaceData.menuImages || []}
+                  onChange={(imgs) => setNewPlaceData({ ...newPlaceData, menuImages: imgs })}
+                  maxFiles={4}
+                  label="Upload Menu Cards / Price Lists"
+                />
+              )}
 
               {/* Action buttons */}
               <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800">

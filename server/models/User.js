@@ -4,8 +4,17 @@ const UserSchema = new mongoose.Schema(
   {
     googleId: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
+    },
+    password: {
+      type: String,
+    },
+    otp: {
+      type: String,
+    },
+    otpExpiry: {
+      type: Date,
     },
     name: {
       type: String,

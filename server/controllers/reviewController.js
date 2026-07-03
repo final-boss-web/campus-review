@@ -290,3 +290,16 @@ export const flagReview = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getFlaggedReviews = async (req, res, next) => {
+  try {
+    const flaggedReviews = await Review.find({ 'flags.0': { $exists: true } })
+      .populate('author', 'name email avatar')
+      .populate('placeId', 'name')
+      .sort({ updatedAt: -1 });
+
+    res.status(200).json(flaggedReviews);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -18,6 +18,13 @@ const MessSchema = new mongoose.Schema(
       type: String, // can store a markdown / text description of the menu
       default: '',
     },
+    menuImages: [
+      {
+        url: { type: String, required: true },
+        fileId: { type: String, required: true },
+        thumbnailUrl: { type: String },
+      },
+    ],
     monthlyCharges: {
       type: Number,
       required: true,
