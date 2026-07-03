@@ -20,10 +20,15 @@ export const getUserProfile = async (req, res, next) => {
       .populate('placeId')
       .sort({ createdAt: -1 });
 
-    // Fetch user's scam reports
-    const scamReports = await ScamReport.find({ student: id })
-      .populate('targetPlaceId')
-      .sort({ createdAt: -1 });
+    // Fetch user's scam reports - only if requesting user is the owner or an admin
+    const isOwnProfile = req.user && req.user._id.toString() === id;
+    const isAdmin = req.user && req.user.role === 'admin';
+    let scamReports = [];
+    if (isOwnProfile || isAdmin) {
+      scamReports = await ScamReport.find({ student: id })
+        .populate('targetPlaceId')
+        .sort({ createdAt: -1 });
+    }
 
     // Fetch bookmarks details
     const populatedBookmarks = [];

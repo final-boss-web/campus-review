@@ -73,6 +73,13 @@ export const AdminDashboard = () => {
   const [scamReports, setScamReports] = useState([]);
   const [flaggedReviews, setFlaggedReviews] = useState([]);
 
+  // Activity Log States
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [selectedUserForActivity, setSelectedUserForActivity] = useState(null);
+  const [userActivityLogs, setUserActivityLogs] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityActionFilter, setActivityActionFilter] = useState('');
+
   useEffect(() => {
     fetchDashboardData();
     fetchAnalyticsData('7d');
@@ -228,6 +235,22 @@ export const AdminDashboard = () => {
       alert(data.message);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleViewActivityLogs = async (user) => {
+    setSelectedUserForActivity(user);
+    setIsActivityModalOpen(true);
+    setActivityLoading(true);
+    setUserActivityLogs([]);
+    setActivityActionFilter('');
+    try {
+      const { data } = await api.get(`/analytics/logs?userId=${user._id}`);
+      setUserActivityLogs(data);
+    } catch (err) {
+      console.error('Failed to fetch activity logs:', err);
+    } finally {
+      setActivityLoading(false);
     }
   };
 
@@ -920,6 +943,7 @@ export const AdminDashboard = () => {
                   <tr>
                     <th className="p-4">Report Title</th>
                     <th className="p-4">Category</th>
+                    <th className="p-4">Reported By</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">Actions</th>
                   </tr>
@@ -932,6 +956,16 @@ export const AdminDashboard = () => {
                         <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-600 font-bold text-[10px]">
                           {scam.category}
                         </span>
+                      </td>
+                      <td className="p-4">
+                        {scam.student ? (
+                          <div>
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">{scam.student.name}</span>
+                            <span className="block text-[10px] text-slate-400">{scam.student.email}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic">Anonymous Student</span>
+                        )}
                       </td>
                       <td className="p-4">
                         {scam.isVerifiedScam ? (
@@ -1011,7 +1045,7 @@ export const AdminDashboard = () => {
                           {u.status}
                         </span>
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 flex items-center space-x-2">
                         {u.role !== 'admin' && (
                           <button
                             onClick={() => handleToggleBanUser(u._id)}
@@ -1024,6 +1058,13 @@ export const AdminDashboard = () => {
                             {u.status === 'active' ? 'Ban User' : 'Unban'}
                           </button>
                         )}
+                        <button
+                          onClick={() => handleViewActivityLogs(u)}
+                          className="py-1.5 px-3 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 dark:bg-indigo-500/20 dark:text-indigo-400 dark:hover:bg-indigo-500/30 rounded-lg text-[10px] font-bold transition flex items-center space-x-1"
+                        >
+                          <Activity className="w-3 h-3 animate-pulse" />
+                          <span>View Activity</span>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -1091,6 +1132,165 @@ export const AdminDashboard = () => {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Student Activity Log Modal */}
+      {isActivityModalOpen && selectedUserForActivity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl glass-effect p-6 overflow-hidden flex flex-col max-h-[85vh]">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4 flex-shrink-0">
+              <div className="flex items-center space-x-3">
+                <img
+                  src={selectedUserForActivity.avatar || 'https://picsum.photos/150'}
+                  alt={selectedUserForActivity.name}
+                  className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                />
+                <div>
+                  <h3 className="text-lg font-black flex items-center text-indigo-600 dark:text-indigo-400">
+                    <Activity className="w-5 h-5 mr-1.5 animate-pulse" />
+                    <span>{selectedUserForActivity.name}'s Activity History</span>
+                  </h3>
+                  <p className="text-xs text-slate-400">{selectedUserForActivity.email} • {selectedUserForActivity.role} account</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsActivityModalOpen(false);
+                  setSelectedUserForActivity(null);
+                  setUserActivityLogs([]);
+                }}
+                className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                <XCircle className="w-6 h-6 text-slate-400 hover:text-slate-650 dark:hover:text-slate-200" />
+              </button>
+            </div>
+
+            {/* Filter Section */}
+            {!activityLoading && userActivityLogs.length > 0 && (
+              <div className="flex justify-between items-center mb-4 flex-shrink-0 bg-slate-50 dark:bg-slate-950/20 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                <span className="text-xs text-slate-500 font-semibold">
+                  Showing {filteredActivityLogs.length} of {userActivityLogs.length} logged activities
+                </span>
+                <div className="flex items-center space-x-2">
+                  <label className="text-xs text-slate-400">Filter Action:</label>
+                  <select
+                    value={activityActionFilter}
+                    onChange={(e) => setActivityActionFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-1 px-3.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="">All Actions</option>
+                    {Array.from(new Set(userActivityLogs.map(log => log.action))).map((act) => (
+                      <option key={act} value={act}>{act}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Content Body */}
+            <div className="flex-1 overflow-y-auto min-h-[300px]">
+              {activityLoading ? (
+                <div className="h-full flex flex-col justify-center items-center py-20 space-y-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                  <p className="text-xs text-slate-400">Retrieving student activity history...</p>
+                </div>
+              ) : filteredActivityLogs.length === 0 ? (
+                <div className="h-full flex flex-col justify-center items-center py-20 text-slate-400 space-y-3">
+                  <Activity className="w-12 h-12 text-slate-300 dark:text-slate-700" />
+                  <h4 className="font-bold text-sm">No activity recorded</h4>
+                  <p className="text-xs max-w-xs text-center">No logs were recorded matching this user or the active filter.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 pr-2">
+                  {filteredActivityLogs.map((log) => (
+                    <div
+                      key={log._id}
+                      className="p-4 bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl space-y-3 shadow-sm transition hover:shadow"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-850 pb-2">
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
+                              log.action === 'Login'
+                                ? 'bg-green-500/10 text-green-600'
+                                : log.action === 'Logout'
+                                ? 'bg-yellow-500/10 text-yellow-600'
+                                : log.action === 'Page View'
+                                ? 'bg-indigo-500/10 text-indigo-600'
+                                : log.action === 'JavaScript Error'
+                                ? 'bg-red-500/10 text-red-650'
+                                : 'bg-brand-500/10 text-brand-600'
+                            }`}
+                          >
+                            {log.action}
+                          </span>
+                          <span className="text-[10px] text-slate-400 flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {new Date(log.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-3 text-[10px] text-slate-400">
+                          <span className="flex items-center flex-wrap">
+                            <Monitor className="w-3 h-3 mr-1 text-indigo-500" /> {log.os || 'Unknown OS'} ({log.browser || 'Unknown Browser'})
+                          </span>
+                          {log.ip && (
+                            <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                              IP: {log.ip}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div className="space-y-1">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Target Page / Endpoint</span>
+                          <div className="font-mono bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 px-2.5 py-1.5 rounded-xl truncate text-[11px]" title={log.currentPage || log.apiEndpoint}>
+                            {log.httpMethod && <span className="text-slate-400 mr-1.5 font-bold uppercase">{log.httpMethod}</span>}
+                            {log.currentPage || log.apiEndpoint}
+                          </div>
+                        </div>
+
+                        {log.country && (
+                          <div className="space-y-1">
+                            <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Geolocation Context</span>
+                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 px-2.5 py-1.5 rounded-xl text-[11px] text-slate-650 dark:text-slate-350">
+                              📍 {log.city ? `${log.city}, ` : ''}{log.state ? `${log.state}, ` : ''}{log.country}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {log.requestBody && Object.keys(log.requestBody).length > 0 && (
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 p-2.5 rounded-xl">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider mb-1">Payload / Details</span>
+                          <pre className="text-[10px] font-mono text-slate-500 overflow-x-auto whitespace-pre-wrap max-h-[80px]">
+                            {JSON.stringify(log.requestBody, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-4 mt-4 flex justify-end flex-shrink-0">
+              <button
+                onClick={() => {
+                  setIsActivityModalOpen(false);
+                  setSelectedUserForActivity(null);
+                  setUserActivityLogs([]);
+                }}
+                className="py-2.5 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition text-xs"
+              >
+                Close Logs
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

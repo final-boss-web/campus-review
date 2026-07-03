@@ -5,11 +5,11 @@ import {
   getAllUsers,
   toggleBanUser,
 } from '../controllers/userController.js';
-import { protect, adminOnly } from '../middleware/auth.js';
+import { protect, adminOnly, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/profile/:id', getUserProfile);
+router.get('/profile/:id', optionalAuth, getUserProfile);
 router.post('/bookmark', protect, toggleBookmark);
 
 // Admin-only endpoints

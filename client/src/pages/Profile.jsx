@@ -124,10 +124,12 @@ export const Profile = () => {
             <span className="text-xl font-black text-brand-600 block">{reviews.length}</span>
             <span className="text-[9px] uppercase font-bold text-slate-400">Reviews</span>
           </div>
-          <div className="p-4 bg-slate-50 dark:bg-slate-950/20 rounded-2xl text-center min-w-[80px]">
-            <span className="text-xl font-black text-indigo-600 block">{scamReports.length}</span>
-            <span className="text-[9px] uppercase font-bold text-slate-400">Scams</span>
-          </div>
+          {(isOwnProfile || currentUser?.role === 'admin') && (
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/20 rounded-2xl text-center min-w-[80px]">
+              <span className="text-xl font-black text-indigo-600 block">{scamReports.length}</span>
+              <span className="text-[9px] uppercase font-bold text-slate-400">Scams</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -242,40 +244,42 @@ export const Profile = () => {
           </div>
 
           {/* Scams reported */}
-          <div className="space-y-4">
-            <h3 className="font-bold text-lg flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              <span>Scam Reports Filed</span>
-            </h3>
+          {(isOwnProfile || currentUser?.role === 'admin') && (
+            <div className="space-y-4">
+              <h3 className="font-bold text-lg flex items-center space-x-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <span>Scam Reports Filed</span>
+              </h3>
 
-            {scamReports.length === 0 ? (
-              <div className="p-10 text-center bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl text-xs text-slate-400">
-                No scam reports filed yet.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {scamReports.map((scam) => (
-                  <div
-                    key={scam._id}
-                    className="p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-3 shadow-sm relative overflow-hidden"
-                  >
-                    {scam.isVerifiedScam && (
-                      <span className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-bl-lg">
-                        Verified Scam
-                      </span>
-                    )}
-                    <div className="flex items-center space-x-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-red-500/10 text-red-600 rounded">
-                        {scam.category}
-                      </span>
+              {scamReports.length === 0 ? (
+                <div className="p-10 text-center bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl text-xs text-slate-400">
+                  No scam reports filed yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {scamReports.map((scam) => (
+                    <div
+                      key={scam._id}
+                      className="p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-3 shadow-sm relative overflow-hidden"
+                    >
+                      {scam.isVerifiedScam && (
+                        <span className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-bl-lg">
+                          Verified Scam
+                        </span>
+                      )}
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-red-500/10 text-red-600 rounded">
+                          {scam.category}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold">{scam.title}</h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">{scam.description}</p>
                     </div>
-                    <h4 className="text-xs font-bold">{scam.title}</h4>
-                    <p className="text-xs text-slate-500 leading-relaxed">{scam.description}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>

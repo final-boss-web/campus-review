@@ -7,6 +7,7 @@ import {
   toggleLikeReview,
   flagReview,
   getFlaggedReviews,
+  getRecentReviews,
 } from '../controllers/reviewController.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
@@ -20,6 +21,7 @@ const reviewValidationRules = [
   body('reviewText').notEmpty().withMessage('Review content is required').trim(),
 ];
 
+router.get('/recent', getRecentReviews);
 router.get('/flagged', protect, adminOnly, getFlaggedReviews);
 router.post('/', protect, reviewValidationRules, validateRequest, createReview);
 router.put('/:id', protect, reviewValidationRules, validateRequest, updateReview);

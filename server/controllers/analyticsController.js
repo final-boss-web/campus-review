@@ -349,3 +349,26 @@ export const exportActivityLogs = async (req, res, next) => {
   }
 };
 
+// API to get activity logs with filters (e.g. by userId)
+export const getActivityLogs = async (req, res, next) => {
+  try {
+    const { userId, limit, action } = req.query;
+    const filter = {};
+    if (userId) {
+      filter.user = userId;
+    }
+    if (action) {
+      filter.action = action;
+    }
+    const logs = await ActivityLog.find(filter)
+      .populate('user', 'name email avatar')
+      .sort({ timestamp: -1 })
+      .limit(parseInt(limit) || 200)
+      .lean();
+
+    res.status(200).json(logs);
+  } catch (error) {
+    next(error);
+  }
+};
+

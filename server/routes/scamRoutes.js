@@ -7,7 +7,7 @@ import {
   verifyScamReport,
   deleteScamReport,
 } from '../controllers/scamController.js';
-import { protect, adminOnly } from '../middleware/auth.js';
+import { protect, adminOnly, optionalAuth } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -26,8 +26,8 @@ const scamValidationRules = [
   body('description').notEmpty().withMessage('Description is required').trim(),
 ];
 
-router.get('/', getScams);
-router.get('/:id', getScamDetail);
+router.get('/', optionalAuth, getScams);
+router.get('/:id', optionalAuth, getScamDetail);
 router.post('/', protect, scamValidationRules, validateRequest, createScamReport);
 router.put('/:id/verify', protect, adminOnly, verifyScamReport);
 router.delete('/:id', protect, adminOnly, deleteScamReport);

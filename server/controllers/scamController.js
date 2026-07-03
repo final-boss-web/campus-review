@@ -29,7 +29,20 @@ export const getScams = async (req, res, next) => {
       .populate('targetPlaceId')
       .sort({ createdAt: -1 });
 
-    res.status(200).json(scams);
+    const isAdmin = req.user && req.user.role === 'admin';
+    const sanitizedScams = scams.map(scam => {
+      const scamObj = scam.toObject();
+      if (!isAdmin) {
+        scamObj.student = {
+          name: 'Student',
+          avatar: '',
+          badges: []
+        };
+      }
+      return scamObj;
+    });
+
+    res.status(200).json(sanitizedScams);
   } catch (error) {
     next(error);
   }
@@ -46,7 +59,17 @@ export const getScamDetail = async (req, res, next) => {
       return res.status(404).json({ message: 'Scam report not found.' });
     }
 
-    res.status(200).json(scam);
+    const isAdmin = req.user && req.user.role === 'admin';
+    const scamObj = scam.toObject();
+    if (!isAdmin) {
+      scamObj.student = {
+        name: 'Student',
+        avatar: '',
+        badges: []
+      };
+    }
+
+    res.status(200).json(scamObj);
   } catch (error) {
     next(error);
   }

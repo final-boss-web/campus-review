@@ -242,7 +242,7 @@ export const ScamAlerts = () => {
                     className="w-6 h-6 rounded-full object-cover"
                   />
                   <span className="text-[10px] font-semibold text-slate-500">
-                    Reported by {scam.student?.name || 'Anonymous Student'}
+                    Reported by {scam.student?.name || 'Student'}
                   </span>
                 </div>
                 {scam.targetPlaceId && (

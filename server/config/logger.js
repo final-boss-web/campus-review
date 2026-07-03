@@ -26,8 +26,16 @@ const logFormat = winston.format.combine(
   )
 );
 
-// Format for terminal console output (colorized)
+// Format for terminal console output (colorized, filters out high-frequency access logs)
+const filterAccessLogs = winston.format((info) => {
+  if (info.message && info.message.startsWith('[ACCESS]')) {
+    return false; // Suppress from console
+  }
+  return info;
+});
+
 const consoleFormat = winston.format.combine(
+  filterAccessLogs(),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
   winston.format.printf(

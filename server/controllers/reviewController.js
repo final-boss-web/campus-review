@@ -303,3 +303,18 @@ export const getFlaggedReviews = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getRecentReviews = async (req, res, next) => {
+  try {
+    const reviews = await Review.find({ isVerified: true })
+      .populate('author', 'name email avatar')
+      .populate('placeId', 'name slug')
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .lean();
+
+    res.status(200).json(reviews);
+  } catch (error) {
+    next(error);
+  }
+};

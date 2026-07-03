@@ -53,16 +53,9 @@ export const Home = () => {
       // Scam alerts
       setScamAlerts(scamsRes.data.slice(0, 3));
 
-      // Fetch combined lists for reviews (we can pull from the place detail or a generic route. Let's make an adhoc fetch or simulate if empty)
-      // For now, let's create a combined recent reviews list
-      const allReviews = [];
-      hostelsRes.data.forEach(h => h.reviewsCount > 0 && allReviews.push(...(h.reviews || [])));
-      
-      // Let's query recent reviews from database
-      const { data: analyticsRes } = await api.get('/analytics/dashboard').catch(() => ({ data: null }));
-      if (analyticsRes) {
-        setRecentReviews(analyticsRes.recent?.recentReviews || []);
-      }
+      // Fetch recent reviews directly from the new lightweight public route
+      const { data: recentRes } = await api.get('/reviews/recent').catch(() => ({ data: [] }));
+      setRecentReviews(recentRes || []);
     } catch (err) {
       console.error('Error fetching homepage data:', err);
     }
