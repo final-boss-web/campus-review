@@ -1,24 +1,52 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Light Mode Variables */
+:root {
+  --bg-primary-light: #F8FAFC;
+  --bg-secondary-light: #FFFFFF;
+  --text-primary-light: #0F172A;
+  --text-secondary-light: #475569;
+  --text-tertiary-light: #94A3B8;
+  --border-light: #E2E8F0;
+  --primary-light: #8B5CF6;
+  --secondary-light: #06B6D4;
+  --success-light: #10B981;
+  --danger-light: #EF4444;
+}
+
+/* Dark Mode Variables */
+:root[data-theme="dark"],
+.dark {
+  --bg-primary-light: #0F172A;
+  --bg-secondary-light: #1E293B;
+  --text-primary-light: #FFFFFF;
+  --text-secondary-light: #CBD5E1;
+  --text-tertiary-light: #94A3B8;
+  --border-light: #475569;
+  --primary-light: #A78BFA;
+  --secondary-light: #22D3EE;
+  --success-light: #34D399;
+  --danger-light: #F87171;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased transition-colors duration-300;
-  }
-  
-  body.dark {
-    @apply bg-[#0b0f19] text-slate-100;
+    background-color: var(--bg-primary-light);
+    color: var(--text-secondary-light);
+    @apply font-sans antialiased transition-colors duration-300;
   }
 
   h1, h2, h3, .heading {
-    font-family: 'Poppins', sans-serif !important;
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    color: var(--text-primary-light) !important;
   }
 
-  body, p {
-    font-family: 'Inter', sans-serif;
+  body, p, span, div, input, textarea, select, button {
+    font-family: 'Poppins', 'Roboto', sans-serif;
   }
 
   /* Custom Scrollbar */
@@ -30,7 +58,8 @@
     @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 dark:bg-slate-800/80 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700;
+    background-color: var(--border-light);
+    @apply rounded-full hover:bg-slate-300 dark:hover:bg-slate-700;
   }
 }
 
@@ -43,7 +72,7 @@
 }
 
 .dark .glass-effect {
-  background: rgba(11, 15, 25, 0.7);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
