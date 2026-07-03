@@ -47,21 +47,29 @@ const transports = [
   new winston.transports.Console({
     format: consoleFormat,
   }),
-  new winston.transports.File({
-    filename: 'logs/error.log',
-    level: 'error',
-    format: logFormat,
-  }),
-  new winston.transports.File({
-    filename: 'logs/combined.log',
-    format: logFormat,
-  }),
-  new winston.transports.File({
-    filename: 'logs/access.log',
-    level: 'info',
-    format: logFormat,
-  }),
 ];
+
+// Write to files in development environment or when explicitly requested,
+// to avoid ENOENT/read-only filesystem errors in serverless/production hosting
+if (process.env.NODE_ENV === 'development' || process.env.ENABLE_FILE_LOGGING === 'true') {
+  const logDir = process.env.LOG_DIR || 'logs';
+  transports.push(
+    new winston.transports.File({
+      filename: `${logDir}/error.log`,
+      level: 'error',
+      format: logFormat,
+    }),
+    new winston.transports.File({
+      filename: `${logDir}/combined.log`,
+      format: logFormat,
+    }),
+    new winston.transports.File({
+      filename: `${logDir}/access.log`,
+      level: 'info',
+      format: logFormat,
+    })
+  );
+}
 
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
