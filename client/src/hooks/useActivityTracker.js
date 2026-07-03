@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { initGA, trackPageView, trackError } from '../utils/analytics.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -14,10 +13,7 @@ export const useActivityTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // 1. Initialize GA4
-    initGA();
-
-    // 2. Establish Session ID
+    // 1. Establish Session ID
     let sessionId = sessionStorage.getItem('analytics_session_id');
     if (!sessionId) {
       sessionId = generateSessionId();
@@ -77,9 +73,6 @@ export const useActivityTracker = () => {
       const currentPage = location.pathname + location.search;
       const previousPage = sessionStorage.getItem('analytics_prev_page') || '';
 
-      // GA4 Track PageView
-      trackPageView(location.pathname);
-
       // Save page state for next transition
       sessionStorage.setItem('analytics_prev_page', currentPage);
 
@@ -129,9 +122,6 @@ export const useActivityTracker = () => {
       const errorMsg = event.message || 'Unknown javascript execution error';
       const errorStack = event.error ? event.error.stack : '';
       
-      // GA4
-      trackError('JavaScript Error', errorMsg);
-
       // Server Log
       try {
         const sessionId = sessionStorage.getItem('analytics_session_id');
@@ -149,9 +139,6 @@ export const useActivityTracker = () => {
     const handleRejections = async (event) => {
       const reason = event.reason ? (event.reason.message || String(event.reason)) : 'Unhandled Promise Rejection';
       
-      // GA4
-      trackError('Promise Rejection', reason);
-
       // Server Log
       try {
         const sessionId = sessionStorage.getItem('analytics_session_id');
