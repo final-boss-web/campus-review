@@ -447,7 +447,7 @@ export const Search = () => {
               {places.map((place) => (
                 <Link
                   key={place._id}
-                  to={`/place/${placeType}/${place._id}`}
+                  to={`/place/${placeType}/${place.slug || place._id}`}
                   className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg flex flex-col justify-between"
                 >
                   <div>

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getUniqueSlug } from '../utils/slugify.js';
 
 const HostelSchema = new mongoose.Schema(
   {
@@ -6,6 +7,10 @@ const HostelSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    slug: {
+      type: String,
+      unique: true,
     },
     images: [
       {
@@ -106,5 +111,12 @@ const HostelSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+HostelSchema.pre('save', async function (next) {
+  if (this.isModified('name') || !this.slug) {
+    this.slug = await getUniqueSlug(this.constructor, this.name, this._id);
+  }
+  next();
+});
 
 export default mongoose.model('Hostel', HostelSchema);

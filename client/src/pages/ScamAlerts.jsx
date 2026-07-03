@@ -247,7 +247,7 @@ export const ScamAlerts = () => {
                 </div>
                 {scam.targetPlaceId && (
                   <Link
-                    to={`/place/${scam.targetPlaceType}/${scam.targetPlaceId._id}`}
+                    to={`/place/${scam.targetPlaceType}/${scam.targetPlaceId.slug || scam.targetPlaceId._id}`}
                     className="text-[10px] text-brand-600 font-bold hover:underline"
                   >
                     View Place Listing

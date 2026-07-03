@@ -74,16 +74,6 @@ const MainAppContent = () => {
     }
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center space-y-4">
-        <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-600 text-white font-black text-2xl animate-bounce">
-          C
-        </span>
-        <span className="text-xs text-slate-400 font-semibold tracking-widest uppercase">Loading Campus Hub...</span>
-      </div>
-    );
-  }
 
   return (
     <Router>

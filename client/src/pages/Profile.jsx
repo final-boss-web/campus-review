@@ -151,7 +151,7 @@ export const Profile = () => {
                   bookmarks.map((bookmark) => (
                     <Link
                       key={bookmark.place._id}
-                      to={`/place/${bookmark.placeType}/${bookmark.place._id}`}
+                      to={`/place/${bookmark.placeType}/${bookmark.place.slug || bookmark.place._id}`}
                       className="block p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition"
                     >
                       <div className="flex items-center justify-between">
@@ -221,7 +221,7 @@ export const Profile = () => {
                   >
                     <div className="flex items-center justify-between">
                       <Link
-                        to={`/place/${rev.placeType}/${rev.placeId?._id}`}
+                        to={`/place/${rev.placeType}/${rev.placeId?.slug || rev.placeId?._id}`}
                         className="text-xs font-bold hover:underline text-brand-600 truncate max-w-[200px]"
                       >
                         {rev.placeId?.name || 'Deleted Listing'}

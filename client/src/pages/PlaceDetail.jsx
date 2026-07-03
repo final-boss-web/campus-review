@@ -111,7 +111,7 @@ export const PlaceDetail = () => {
 
     try {
       const payload = {
-        placeId: id,
+        placeId: place._id,
         placeType: type,
         rating: reviewRating,
         reviewText,

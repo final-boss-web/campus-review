@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Hostel from '../models/Hostel.js';
 import Mess from '../models/Mess.js';
 import Shop from '../models/Shop.js';
@@ -19,6 +20,13 @@ const getModelByType = (type) => {
     default:
       return null;
   }
+};
+
+const findPlaceByIdOrSlug = (Model, idOrSlug) => {
+  if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+    return Model.findById(idOrSlug);
+  }
+  return Model.findOne({ slug: idOrSlug });
 };
 
 export const getPlaces = async (req, res, next) => {
@@ -143,13 +151,13 @@ export const getPlaceDetail = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid place type specified.' });
     }
 
-    const place = await Model.findById(id).populate('createdBy', 'name email avatar');
+    const place = await findPlaceByIdOrSlug(Model, id).populate('createdBy', 'name email avatar');
     if (!place) {
       return res.status(404).json({ message: 'Place not found.' });
     }
 
-    // Fetch related reviews
-    const reviews = await Review.find({ placeId: id, placeType: Model.modelName, isVerified: true })
+    // Fetch related reviews using the populated MongoDB ID
+    const reviews = await Review.find({ placeId: place._id, placeType: Model.modelName, isVerified: true })
       .populate('author', 'name email avatar badges')
       .sort({ createdAt: -1 });
 
@@ -217,7 +225,7 @@ export const updatePlace = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid place type specified.' });
     }
 
-    const place = await Model.findById(id);
+    const place = await findPlaceByIdOrSlug(Model, id);
     if (!place) {
       return res.status(404).json({ message: 'Place not found.' });
     }
@@ -227,7 +235,9 @@ export const updatePlace = async (req, res, next) => {
       return res.status(403).json({ message: 'Access denied. You can only edit your own listings.' });
     }
 
-    const updatedPlace = await Model.findByIdAndUpdate(id, { $set: req.body }, { new: true });
+    // Use save() so Mongoose validators and pre-save hooks (like slug generation) run
+    Object.assign(place, req.body);
+    const updatedPlace = await place.save();
     logger.info(`Place updated: ${updatedPlace.name} by ${req.user.email}`);
 
     res.status(200).json({
@@ -248,16 +258,16 @@ export const deletePlace = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid place type specified.' });
     }
 
-    const place = await Model.findById(id);
+    const place = await findPlaceByIdOrSlug(Model, id);
     if (!place) {
       return res.status(404).json({ message: 'Place not found.' });
     }
 
-    await Model.findByIdAndDelete(id);
+    await Model.findByIdAndDelete(place._id);
     logger.warn(`Place deleted: ${place.name} (${type}) by admin ${req.user.email}`);
 
     // Delete all associated reviews
-    await Review.deleteMany({ placeId: id, placeType: Model.modelName });
+    await Review.deleteMany({ placeId: place._id, placeType: Model.modelName });
 
     res.status(200).json({ message: 'Place and all its reviews deleted successfully.' });
   } catch (error) {
@@ -274,7 +284,7 @@ export const approvePlace = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid place type specified.' });
     }
 
-    const place = await Model.findById(id);
+    const place = await findPlaceByIdOrSlug(Model, id);
     if (!place) {
       return res.status(404).json({ message: 'Place not found.' });
     }

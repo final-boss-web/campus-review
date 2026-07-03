@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getUniqueSlug } from '../utils/slugify.js';
 
 const ShopSchema = new mongoose.Schema(
   {
@@ -6,6 +7,10 @@ const ShopSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    slug: {
+      type: String,
+      unique: true,
     },
     images: [
       {
@@ -73,5 +78,12 @@ const ShopSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+ShopSchema.pre('save', async function (next) {
+  if (this.isModified('name') || !this.slug) {
+    this.slug = await getUniqueSlug(this.constructor, this.name, this._id);
+  }
+  next();
+});
 
 export default mongoose.model('Shop', ShopSchema);

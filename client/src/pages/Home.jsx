@@ -212,7 +212,7 @@ export const Home = () => {
           {topHostels.map((hostel) => (
             <Link
               key={hostel._id}
-              to={`/place/Hostel/${hostel._id}`}
+              to={`/place/Hostel/${hostel.slug || hostel._id}`}
               className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg dark:hover:border-cyber-purple/20"
             >
               <div className="relative aspect-video bg-slate-100 dark:bg-slate-950 overflow-hidden">
@@ -266,7 +266,7 @@ export const Home = () => {
           {topMesses.map((mess) => (
             <Link
               key={mess._id}
-              to={`/place/Mess/${mess._id}`}
+              to={`/place/Mess/${mess.slug || mess._id}`}
               className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg dark:hover:border-cyber-blue/20"
             >
               <div className="relative aspect-video bg-slate-100 dark:bg-slate-950 overflow-hidden">
@@ -319,7 +319,7 @@ export const Home = () => {
           {topShops.map((shop) => (
             <Link
               key={shop._id}
-              to={`/place/Shop/${shop._id}`}
+              to={`/place/Shop/${shop.slug || shop._id}`}
               className="group glass-card overflow-hidden hover:-translate-y-1.5 duration-300 hover:shadow-lg dark:hover:border-cyber-purple/20"
             >
               <div className="relative aspect-video bg-slate-100 dark:bg-slate-950 overflow-hidden">
