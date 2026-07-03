@@ -79,7 +79,7 @@
 }
 
 .glass-card {
-  @apply bg-white/70 dark:bg-[#0f172a]/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-glass-light dark:shadow-glass-dark rounded-3xl transition-all duration-300;
+  @apply bg-white/70 dark:bg-[#0f172a]/60 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-glass-light dark:shadow-glass-dark rounded-3xl transition-all duration-300;
 }
 
 /* Custom Gradients */

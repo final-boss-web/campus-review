@@ -21,6 +21,7 @@ import PlaceDetail from './pages/PlaceDetail.jsx';
 import ScamAlerts from './pages/ScamAlerts.jsx';
 import Profile from './pages/Profile.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import { useActivityTracker } from './hooks/useActivityTracker.js';
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,11 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Activity log tracking trigger rendered within the router context
+const ActivityTrackerTrigger = () => {
+  useActivityTracker();
+  return null;
+};
 
 // App contents that need access to Redux hooks
 const MainAppContent = () => {
@@ -78,8 +84,10 @@ const MainAppContent = () => {
   return (
     <Router>
       <ScrollToTop />
+      <ActivityTrackerTrigger />
       <div className="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
         <div>
+
           <Navbar />
           <main className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-0">
             <Routes>

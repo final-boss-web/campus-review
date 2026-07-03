@@ -14,6 +14,16 @@ import {
   TrendingUp,
   Award,
   ArrowLeft,
+  Calendar,
+  Download,
+  Activity,
+  Globe,
+  Monitor,
+  ShieldAlert,
+  Clock,
+  ArrowRight,
+  Eye,
+  FileText
 } from 'lucide-react';
 import {
   BarChart,
@@ -25,6 +35,12 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  Legend
 } from 'recharts';
 import api from '../services/api.js';
 
@@ -39,10 +55,17 @@ export const AdminDashboard = () => {
     }
   }, [user]);
 
-  // Dashboard Stats States
+  // Dashboard Stats States (Moderation)
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Overview');
+
+  // Analytics Dashboard States
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsRange, setAnalyticsRange] = useState('7d');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // Management Lists
   const [unapprovedPlaces, setUnapprovedPlaces] = useState([]);
@@ -52,7 +75,15 @@ export const AdminDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchAnalyticsData('7d');
   }, []);
+
+  // Fetch stats when filter changes
+  useEffect(() => {
+    if (analyticsRange !== 'custom') {
+      fetchAnalyticsData(analyticsRange);
+    }
+  }, [analyticsRange]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -61,7 +92,7 @@ export const AdminDashboard = () => {
       const { data } = await api.get('/analytics/dashboard');
       setStats(data);
 
-      // 2. Fetch unapproved places (both hostels, messes, shops with approved = false)
+      // 2. Fetch unapproved places
       const [hRes, mRes, sRes, uRes, scRes, rRes] = await Promise.all([
         api.get('/places?type=Hostel&approvedOnly=false'),
         api.get('/places?type=Mess&approvedOnly=false'),
@@ -86,6 +117,86 @@ export const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAnalyticsData = async (range, start = '', end = '') => {
+    setAnalyticsLoading(true);
+    try {
+      const params = { range };
+      if (range === 'custom') {
+        params.startDate = start;
+        params.endDate = end;
+      }
+      const { data } = await api.get('/analytics/dashboard', { params });
+      setAnalyticsData(data);
+    } catch (err) {
+      console.error('Error fetching analytics dashboard stats:', err);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  const handleApplyCustomFilter = () => {
+    if (!customStartDate || !customEndDate) {
+      alert('Please select both start and end dates.');
+      return;
+    }
+    fetchAnalyticsData('custom', customStartDate, customEndDate);
+  };
+
+  const handleExport = async (format) => {
+    try {
+      const { data } = await api.get('/analytics/export');
+      if (!data || data.length === 0) {
+        alert('No audit logs available to export.');
+        return;
+      }
+
+      const headers = ['Timestamp', 'Session ID', 'Username', 'Full Name', 'Action', 'IP', 'Country', 'Region/State', 'City', 'Browser', 'OS', 'Page', 'Status', 'Response Time (ms)'];
+      const rows = data.map(log => [
+        new Date(log.timestamp).toLocaleString(),
+        log.sessionId || 'Guest Session',
+        log.username || 'Guest',
+        log.fullName || 'Guest',
+        log.action,
+        log.ip || '',
+        log.country || '',
+        log.state || '',
+        log.city || '',
+        log.browser || '',
+        log.os || '',
+        log.currentPage || '',
+        log.responseStatus || '',
+        log.responseTime || ''
+      ]);
+
+      if (format === 'csv') {
+        const csvContent = [headers.join(','), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `activity_logs_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+      } else if (format === 'excel') {
+        let tabContent = '<table><thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+        rows.forEach(r => {
+          tabContent += '<tr>' + r.map(val => `<td>${val}</td>`).join('') + '</tr>';
+        });
+        tabContent += '</tbody></table>';
+        const blob = new Blob([tabContent], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `activity_logs_${new Date().toISOString().slice(0, 10)}.xls`;
+        link.click();
+      }
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Failed to export activity logs.');
+    }
+  };
+
+  const handlePrintPDF = () => {
+    window.print();
   };
 
   const handleApproveListing = async (type, id) => {
@@ -167,18 +278,44 @@ export const AdminDashboard = () => {
     );
   }
 
-  // Charts data processing
-  const ratingsChartData = stats.charts?.highestRatedHostels?.map((h) => ({
-    name: h.name.substring(0, 15) + '...',
-    Rating: h.averageRating,
-  })) || [];
+  // Color palettes for Recharts
+  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
-  const activityChartData = stats.charts?.activeStudents?.map((s) => ({
-    name: s.name.split(' ')[0],
-    Reviews: s.count,
-  })) || [];
+  // Processing Trend Data
+  const trendDates = Array.from(new Set([
+    ...(analyticsData?.trends?.visitorTrend?.map(x => x._id) || []),
+    ...(analyticsData?.trends?.userGrowth?.map(x => x._id) || [])
+  ])).sort();
 
-  const COLORS = ['#4d70ff', '#4f46e5', '#10b981', '#f59e0b', '#ef4444'];
+  const trendChartData = trendDates.map(date => {
+    const visitorData = analyticsData?.trends?.visitorTrend?.find(x => x._id === date);
+    const userData = analyticsData?.trends?.userGrowth?.find(x => x._id === date);
+    return {
+      date: date.substring(5), // MM-DD for cleaner X-Axis labels
+      'Unique Visitors': visitorData ? visitorData.visitors : 0,
+      'New Signups': userData ? userData.registrations : 0
+    };
+  });
+
+  const reviewsTrendData = (analyticsData?.trends?.reviewsTrend || []).map(x => ({
+    date: x._id.substring(5),
+    Reviews: x.reviews
+  }));
+
+  const browserPieData = (analyticsData?.breakdowns?.topBrowsers || []).map(x => ({
+    name: x._id || 'Other',
+    value: x.count
+  }));
+
+  const devicePieData = (analyticsData?.breakdowns?.topDevices || []).map(x => ({
+    name: x._id || 'Other',
+    value: x.count
+  }));
+
+  const countryPieData = (analyticsData?.breakdowns?.countries || []).map(x => ({
+    name: x._id || 'Other',
+    value: x.count
+  }));
 
   const overviewCards = [
     { label: 'Total Members', val: stats.cards.totalUsers, icon: Users, color: 'text-blue-500 bg-blue-500/10' },
@@ -189,7 +326,7 @@ export const AdminDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6 pb-20">
-      <div className="flex justify-start">
+      <div className="flex justify-start print:hidden">
         <Link
           to="/"
           className="inline-flex items-center space-x-2 text-xs font-black text-slate-500 hover:text-cyber-purple dark:text-slate-400 dark:hover:text-cyber-cyan transition-all duration-200 bg-white/50 dark:bg-slate-900/50 px-4 py-2.5 rounded-xl border border-slate-200/40 dark:border-slate-800/40 shadow-sm hover:shadow-md"
@@ -209,12 +346,12 @@ export const AdminDashboard = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-100 dark:border-slate-850/40 gap-6">
-        {['Overview', 'Approve Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews'].map((tab) => (
+      <div className="flex border-b border-slate-100 dark:border-slate-850/40 gap-6 overflow-x-auto print:hidden">
+        {['Overview', 'Analytics Dashboard', 'Approve Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-3 text-xs font-bold transition-all relative ${
+            className={`pb-3 text-xs font-bold transition-all relative flex-shrink-0 ${
               activeTab === tab
                 ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400'
                 : 'text-slate-400 hover:text-slate-600'
@@ -248,12 +385,11 @@ export const AdminDashboard = () => {
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Chart 1: Highest rated */}
             <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
               <h3 className="text-sm font-bold font-sans">Highest Rated Places</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={ratingsChartData}>
+                  <BarChart data={stats.charts?.highestRatedHostels?.map((h) => ({ name: h.name.substring(0, 12) + '...', Rating: h.averageRating })) || []}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
                     <YAxis stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
                     <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
@@ -263,12 +399,11 @@ export const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Chart 2: Active reviews */}
             <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
               <h3 className="text-sm font-bold font-sans">Most Active Reviewers (Reviews written)</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={activityChartData}>
+                  <BarChart data={stats.charts?.activeStudents?.map((s) => ({ name: s.name.split(' ')[0], Reviews: s.count })) || []}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
                     <YAxis stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
                     <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
@@ -281,9 +416,438 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* 2. APPROVE LISTINGS TAB */}
+      {/* 2. ANALYTICS DASHBOARD TAB */}
+      {activeTab === 'Analytics Dashboard' && (
+        <div className="space-y-8 animate-fade-in">
+          
+          {/* Dashboard Control Bar */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm print:hidden">
+            
+            {/* Filter buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { label: 'Today', value: 'today' },
+                { label: 'Yesterday', value: 'yesterday' },
+                { label: '7 Days', value: '7d' },
+                { label: '30 Days', value: '30d' },
+                { label: '90 Days', value: '90d' },
+                { label: 'Custom', value: 'custom' },
+              ].map((btn) => (
+                <button
+                  key={btn.value}
+                  onClick={() => setAnalyticsRange(btn.value)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border ${
+                    analyticsRange === btn.value
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-500/10'
+                      : 'bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-800 text-slate-600 dark:text-slate-350 hover:bg-slate-100'
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Dates inputs */}
+            {analyticsRange === 'custom' && (
+              <div className="flex flex-wrap items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-4 py-1">
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-1 text-xs rounded-xl focus:outline-none"
+                />
+                <span className="text-slate-400 text-xs">to</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-1 text-xs rounded-xl focus:outline-none"
+                />
+                <button
+                  onClick={handleApplyCustomFilter}
+                  className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition duration-200"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+
+            {/* Exports controls */}
+            <div className="flex items-center gap-2 self-stretch md:self-auto border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-4 md:pt-0 pl-0 md:pl-4">
+              <button
+                onClick={() => handleExport('csv')}
+                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-50 border border-slate-200 dark:bg-slate-850/40 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+                title="Export CSV"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-400" />
+                <span>CSV</span>
+              </button>
+              <button
+                onClick={() => handleExport('excel')}
+                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-50 border border-slate-200 dark:bg-slate-850/40 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+                title="Export Excel"
+              >
+                <FileText className="w-3.5 h-3.5 text-slate-400" />
+                <span>Excel</span>
+              </button>
+              <button
+                onClick={handlePrintPDF}
+                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-50 border border-slate-200 dark:bg-slate-850/40 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+                title="Print Dashboard or Save to PDF"
+              >
+                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                <span>PDF / Print</span>
+              </button>
+            </div>
+          </div>
+
+          {analyticsLoading || !analyticsData ? (
+            <div className="p-20 text-center animate-pulse text-xs text-slate-400">
+              Gathering activity aggregates and rendering live charts...
+            </div>
+          ) : (
+            <>
+              {/* Metric Cards Row */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                {[
+                  { label: 'Active Users', val: analyticsData.cards.activeUsers, cap: 'In Date Filter', icon: Users, color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20' },
+                  { label: 'Live Visitors', val: analyticsData.cards.onlineUsers, cap: 'Last 5 Minutes', icon: Activity, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20' },
+                  { label: 'Today\'s Users', val: analyticsData.cards.todayUsers, cap: 'Unique Pings', icon: Clock, color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/20' },
+                  { label: 'Weekly Users', val: analyticsData.cards.weeklyUsers, cap: 'Last 7 Days', icon: Calendar, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/20' },
+                  { label: 'Monthly Users', val: analyticsData.cards.monthlyUsers, cap: 'Last 30 Days', icon: Calendar, color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/20' },
+                  { label: 'Reviews Today', val: analyticsData.cards.reviewsToday, cap: 'New reviews', icon: MessageSquare, color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/20' },
+                ].map((card, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-extrabold uppercase text-slate-400 tracking-wider block">{card.label}</span>
+                        <span className="text-2xl font-black block">{card.val}</span>
+                      </div>
+                      <div className={`p-2.5 rounded-xl ${card.color}`}>
+                        <card.icon className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-slate-400 block mt-3 font-medium">{card.cap}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Auxiliary cards: Likes, Comments, Uploads, Visitors */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { title: 'Reviews Views & Popularity', val1: analyticsData.cards.totalReviews, cap1: 'Total Reviews', val2: analyticsData.cards.reviewsToday, cap2: 'Reviews Today', icon: MessageSquare, color: 'border-l-4 border-l-brand-600' },
+                  { title: 'Interactive Comments Feed', val1: analyticsData.cards.totalComments, cap1: 'Total Comments', val2: analyticsData.cards.commentsToday, cap2: 'Comments Today', icon: MessageSquare, color: 'border-l-4 border-l-blue-500' },
+                  { title: 'Helpful Likes Counter', val1: analyticsData.cards.totalLikes, cap1: 'Total Likes', val2: analyticsData.cards.dailyLikes, cap2: 'Likes in Period', icon: Award, color: 'border-l-4 border-l-indigo-500' },
+                  { title: 'Image & File Uploads', val1: analyticsData.cards.imagesUploaded, cap1: 'Images in Database', val2: analyticsData.cards.filesUploaded, cap2: 'Upload Logs in Period', icon: ImageIcon, color: 'border-l-4 border-l-emerald-500' },
+                ].map((card, idx) => (
+                  <div
+                    key={idx}
+                    className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between ${card.color}`}
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-50 dark:border-slate-800/60 mb-3">
+                      <span className="text-[10px] font-black text-slate-450 uppercase">{card.title}</span>
+                      <card.icon className="w-4 h-4 text-slate-350" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-medium block">{card.cap1}</span>
+                        <span className="text-lg font-black">{card.val1}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-medium block">{card.cap2}</span>
+                        <span className="text-lg font-black">{card.val2}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Major Charts Rows */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                {/* Visitor & Signup Trend Chart */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-bold font-sans">Visitor Traffic & Signup Trend</h3>
+                    <span className="text-[10px] bg-slate-50 border px-2 py-0.5 rounded text-slate-400 font-bold">Daily Aggregations</span>
+                  </div>
+                  <div className="h-72">
+                    {trendChartData.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-xs text-slate-400">No trend data available for this range.</div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={trendChartData}>
+                          <defs>
+                            <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
+                              <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                            </linearGradient>
+                            <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:hidden" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" className="hidden dark:block" />
+                          <XAxis dataKey="date" stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
+                          <Tooltip contentStyle={{ borderRadius: '12px', fontSize: '11px', border: '1px solid #e2e8f0' }} />
+                          <Legend wrapperStyle={{ fontSize: '11px' }} />
+                          <Area type="monotone" dataKey="Unique Visitors" stroke="#4f46e5" fillOpacity={1} fill="url(#colorVisitors)" strokeWidth={2} />
+                          <Area type="monotone" dataKey="New Signups" stroke="#10b981" fillOpacity={1} fill="url(#colorSignups)" strokeWidth={2} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+
+                {/* Reviews Written Trend Chart */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-bold font-sans">Reviews Written Trend</h3>
+                    <span className="text-[10px] bg-slate-50 border px-2 py-0.5 rounded text-slate-400 font-bold">Reviews Count</span>
+                  </div>
+                  <div className="h-72">
+                    {reviewsTrendData.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-xs text-slate-400">No reviews created in this date range.</div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={reviewsTrendData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:hidden" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" className="hidden dark:block" />
+                          <XAxis dataKey="date" stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
+                          <Tooltip contentStyle={{ borderRadius: '12px', fontSize: '11px', border: '1px solid #e2e8f0' }} />
+                          <Bar dataKey="Reviews" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Distributions Row (Browser share and Device Type and Country) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* Browser Share */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
+                  <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Browser Distribution</h3>
+                  <div className="h-48">
+                    {browserPieData.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-[10px] text-slate-400">No data</div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={browserPieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={65}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {browserPieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend wrapperStyle={{ fontSize: '10px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+
+                {/* Device Distribution */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
+                  <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Device Distribution</h3>
+                  <div className="h-48">
+                    {devicePieData.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-[10px] text-slate-400">No data</div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={devicePieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={65}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {devicePieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend wrapperStyle={{ fontSize: '10px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+
+                {/* Country Share */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex flex-col justify-between h-80">
+                  <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Country Distribution</h3>
+                  <div className="h-48">
+                    {countryPieData.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-[10px] text-slate-400">No data</div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={countryPieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={65}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {countryPieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend wrapperStyle={{ fontSize: '10px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation & Search Breakdowns */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                {/* Top Visited Pages */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+                  <h3 className="text-xs font-black uppercase text-slate-455 mb-4">Top Visited Pages</h3>
+                  <div className="space-y-3">
+                    {analyticsData.breakdowns?.topPages?.length === 0 ? (
+                      <div className="text-xs text-slate-400 py-4">No records captured.</div>
+                    ) : (
+                      analyticsData.breakdowns.topPages.map((page, idx) => (
+                        <div key={idx} className="flex justify-between items-center border-b border-slate-50 dark:border-slate-800/40 pb-2">
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[350px]" title={page._id}>
+                            {page._id || '/'}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                            {page.count} views
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Top Search Keywords */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+                  <h3 className="text-xs font-black uppercase text-slate-455 mb-4">Top Search Queries</h3>
+                  <div className="space-y-3">
+                    {analyticsData.breakdowns?.topSearchKeywords?.length === 0 ? (
+                      <div className="text-xs text-slate-400 py-4">No search keywords found.</div>
+                    ) : (
+                      analyticsData.breakdowns.topSearchKeywords.map((kw, idx) => (
+                        <div key={idx} className="flex justify-between items-center border-b border-slate-50 dark:border-slate-800/40 pb-2">
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[350px]">
+                            "{kw._id}"
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400">
+                            {kw.count} searches
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Geographic and Error break downs */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                {/* Geographic break down (Region, City) */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-5">
+                  <h3 className="text-xs font-black uppercase text-slate-455 mb-1">Geographic Breakdowns</h3>
+                  
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-2.5">Top States / Regions</h4>
+                      <div className="space-y-2">
+                        {analyticsData.breakdowns?.states?.map((st, i) => (
+                          <div key={i} className="flex justify-between items-center text-xs">
+                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{st._id || 'Unknown'}</span>
+                            <span className="text-slate-400">{st.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-2.5">Top Cities</h4>
+                      <div className="space-y-2">
+                        {analyticsData.breakdowns?.cities?.map((ci, i) => (
+                          <div key={i} className="flex justify-between items-center text-xs">
+                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{ci._id || 'Unknown'}</span>
+                            <span className="text-slate-400">{ci.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* API and System Errors Registry */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xs font-black uppercase text-slate-455 mb-4">Error Diagnostics</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b dark:border-slate-800 pb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Internal Server Errors (500+)</span>
+                        </div>
+                        <span className="text-xs font-black text-slate-600 dark:text-slate-300">{analyticsData.breakdowns.errors.apiErrors} triggers</span>
+                      </div>
+
+                      <div className="flex items-center justify-between border-b dark:border-slate-800 pb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Page Not Found Errors (404)</span>
+                        </div>
+                        <span className="text-xs font-black text-slate-600 dark:text-slate-300">{analyticsData.breakdowns.errors.notFoundErrors} occurrences</span>
+                      </div>
+
+                      <div className="flex items-center justify-between border-b dark:border-slate-800 pb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Authentication & Ban Failures</span>
+                        </div>
+                        <span className="text-xs font-black text-slate-600 dark:text-slate-300">{analyticsData.breakdowns.errors.authErrors} events</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 rounded-2xl p-4.5 text-xs text-red-700 dark:text-red-400 mt-4 leading-relaxed flex items-start gap-2.5">
+                    <ShieldAlert className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>Diagnostics alert: High concentrations of 404 or 401 exceptions can imply coordinate mapping conflicts, expired client tokens, or potential intrusion attempts. Check audit log CSV exports for client IP traces.</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* 3. APPROVE LISTINGS TAB */}
       {activeTab === 'Approve Listings' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-sm">Listing Submissions Pending Approval ({unapprovedPlaces.length})</h3>
           </div>
@@ -306,7 +870,7 @@ export const AdminDashboard = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {unapprovedPlaces.map((place) => (
                     <tr key={place._id}>
-                      <td className="p-4 font-bold text-slate-800 dark:text-slate-200">{place.name}</td>
+                      <td className="p-4 font-bold text-slate-880 dark:text-slate-200">{place.name}</td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]">
                           {place.type}
@@ -339,9 +903,9 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* 3. MODERATE SCAMS TAB */}
+      {/* 4. MODERATE SCAMS TAB */}
       {activeTab === 'Moderate Scams' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-sm">Scam Reports Registry Moderation</h3>
           </div>
@@ -363,7 +927,7 @@ export const AdminDashboard = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {scamReports.map((scam) => (
                     <tr key={scam._id}>
-                      <td className="p-4 font-bold text-slate-800 dark:text-slate-200">{scam.title}</td>
+                      <td className="p-4 font-bold text-slate-880 dark:text-slate-200">{scam.title}</td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-600 font-bold text-[10px]">
                           {scam.category}
@@ -390,7 +954,7 @@ export const AdminDashboard = () => {
                         )}
                         <button
                           onClick={() => handleDeleteScam(scam._id)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded"
+                          className="p-1 text-red-500 hover:bg-red-55 rounded"
                           title="Delete Report"
                         >
                           <Trash2 className="w-5 h-5" />
@@ -405,9 +969,9 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* 4. USER ACCOUNTS TAB */}
+      {/* 5. USER ACCOUNTS TAB */}
       {activeTab === 'User Accounts' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-sm">Student Registry & Ban moderation</h3>
           </div>
@@ -432,7 +996,7 @@ export const AdminDashboard = () => {
                     <tr key={u._id}>
                       <td className="p-4 flex items-center space-x-3">
                         <img src={u.avatar || 'https://picsum.photos/150'} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{u.name}</span>
+                        <span className="font-bold text-slate-880 dark:text-slate-200">{u.name}</span>
                       </td>
                       <td className="p-4">{u.email}</td>
                       <td className="p-4 capitalize">{u.role}</td>
@@ -470,9 +1034,9 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* 5. MODERATE REVIEWS TAB */}
+      {/* 6. MODERATE REVIEWS TAB */}
       {activeTab === 'Moderate Reviews' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-sm">Flagged Reviews Moderation ({flaggedReviews.length})</h3>
           </div>
@@ -503,7 +1067,7 @@ export const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-slate-800 dark:text-slate-200">{rev.author?.name}</div>
+                        <div className="font-bold text-slate-880 dark:text-slate-200">{rev.author?.name}</div>
                         <div className="text-[10px] text-slate-400">{rev.author?.email}</div>
                       </td>
                       <td className="p-4 font-extrabold text-amber-500">{rev.rating} ★</td>
@@ -535,3 +1099,4 @@ export const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
