@@ -34,7 +34,7 @@ export const VerifyRegistration = () => {
 
     try {
       const { data } = await api.post('/auth/verify-registration', { email, otp });
-      dispatch(setUser(data.user));
+      dispatch(setUser({ user: data.user, token: data.token }));
       setSuccess('Email verified successfully! Welcome.');
       setTimeout(() => navigate('/'), 1500);
     } catch (err) {

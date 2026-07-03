@@ -31,7 +31,7 @@ export const Login = () => {
     try {
       const token = googleResponse.credential;
       const { data } = await api.post('/auth/google', { token });
-      dispatch(setUser(data.user));
+      dispatch(setUser({ user: data.user, token: data.token }));
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -49,7 +49,7 @@ export const Login = () => {
 
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      dispatch(setUser(data.user));
+      dispatch(setUser({ user: data.user, token: data.token }));
       setSuccess('Logged in successfully!');
       setTimeout(() => navigate('/'), 1000);
     } catch (err) {

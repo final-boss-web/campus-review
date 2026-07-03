@@ -15,6 +15,11 @@ const api = axios.create({
 // Request interceptor to attach tracking headers on every outgoing API request
 api.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const sessionId = sessionStorage.getItem('analytics_session_id');
     const geoDataStr = sessionStorage.getItem('client_geo');
 

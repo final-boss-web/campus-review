@@ -116,6 +116,7 @@ export const googleLogin = async (req, res, next) => {
 
     res.status(200).json({
       message: 'Logged in successfully',
+      token: jwtToken,
       user: {
         id: user._id,
         name: user.name,
@@ -266,6 +267,7 @@ export const login = async (req, res, next) => {
 
     res.status(200).json({
       message: 'Logged in successfully',
+      token: jwtToken,
       user: {
         id: user._id,
         name: user.name,
@@ -382,6 +384,7 @@ export const verifyRegistration = async (req, res, next) => {
 
     res.status(200).json({
       message: 'Email verified successfully! Welcome to Campus Hub.',
+      token: jwtToken,
       user: {
         id: user._id,
         name: user.name,

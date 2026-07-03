@@ -32,7 +32,7 @@ export const Register = () => {
     try {
       const token = googleResponse.credential;
       const { data } = await api.post('/auth/google', { token });
-      dispatch(setUser(data.user));
+      dispatch(setUser({ user: data.user, token: data.token }));
       navigate('/');
     } catch (err) {
       console.error(err);
