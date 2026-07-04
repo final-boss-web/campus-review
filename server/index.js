@@ -26,6 +26,7 @@ import scamRoutes from './routes/scamRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 
 dotenv.config();
 
@@ -119,6 +120,7 @@ app.use('/api/scams', scamRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/support', supportRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -24,6 +24,7 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import VerifyRegistration from './pages/VerifyRegistration.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
+import Contact from './pages/Contact.jsx';
 import { useActivityTracker } from './hooks/useActivityTracker.js';
 
 const queryClient = new QueryClient();
@@ -95,6 +96,7 @@ const MainAppContent = () => {
               <Route path="/scams" element={<ScamAlerts />} />
               <Route path="/profile/:id" element={<Profile />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verify-registration" element={<VerifyRegistration />} />

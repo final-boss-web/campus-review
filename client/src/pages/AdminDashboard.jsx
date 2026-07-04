@@ -23,7 +23,8 @@ import {
   Clock,
   ArrowRight,
   Eye,
-  FileText
+  FileText,
+  Mail
 } from 'lucide-react';
 import {
   BarChart,
@@ -74,6 +75,8 @@ export const AdminDashboard = () => {
   const [allUsers, setAllUsers] = useState([]);
   const [scamReports, setScamReports] = useState([]);
   const [flaggedReviews, setFlaggedReviews] = useState([]);
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   // Activity Log States
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
@@ -102,14 +105,15 @@ export const AdminDashboard = () => {
       const { data } = await api.get('/analytics/dashboard');
       setStats(data);
 
-      // 2. Fetch unapproved places
-      const [hRes, mRes, sRes, uRes, scRes, rRes] = await Promise.all([
+      // 2. Fetch unapproved places and support tickets
+      const [hRes, mRes, sRes, uRes, scRes, rRes, supRes] = await Promise.all([
         api.get('/places?type=Hostel&approvedOnly=false'),
         api.get('/places?type=Mess&approvedOnly=false'),
         api.get('/places?type=Shop&approvedOnly=false'),
         api.get('/users'), // admin route
         api.get('/scams'),
         api.get('/reviews/flagged'),
+        api.get('/support'),
       ]);
 
       const combinedUnapproved = [
@@ -122,6 +126,7 @@ export const AdminDashboard = () => {
       setAllUsers(uRes.data);
       setScamReports(scRes.data);
       setFlaggedReviews(rRes.data);
+      setSupportTickets(supRes.data || []);
     } catch (err) {
       console.error('Error fetching admin data:', err);
     } finally {
@@ -291,6 +296,36 @@ export const AdminDashboard = () => {
     }
   };
 
+  const handleToggleReadTicket = async (ticketId) => {
+    try {
+      const { data } = await api.put(`/support/${ticketId}/read`);
+      setSupportTickets(
+        supportTickets.map((t) => (t._id === ticketId ? { ...t, isRead: data.ticket.isRead } : t))
+      );
+      if (selectedTicket && selectedTicket._id === ticketId) {
+        setSelectedTicket({ ...selectedTicket, isRead: data.ticket.isRead });
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update ticket read status.');
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId) => {
+    if (!window.confirm('Are you sure you want to delete this support ticket?')) return;
+    try {
+      await api.delete(`/support/${ticketId}`);
+      setSupportTickets(supportTickets.filter((t) => t._id !== ticketId));
+      if (selectedTicket && selectedTicket._id === ticketId) {
+        setSelectedTicket(null);
+      }
+      alert('Support ticket deleted successfully.');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete support ticket.');
+    }
+  };
+
   if (loading || !stats) {
     return (
       <div className="max-w-4xl mx-auto py-20 px-4 text-center animate-pulse space-y-6">
@@ -373,7 +408,7 @@ export const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex border-b border-[#2A2A3D] gap-6 overflow-x-auto print:hidden">
-        {['Overview', 'Analytics Dashboard', 'Approve Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews'].map((tab) => (
+        {['Overview', 'Analytics Dashboard', 'Approve Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews', 'Support Tickets'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1135,6 +1170,129 @@ export const AdminDashboard = () => {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* 7. SUPPORT TICKETS TAB */}
+      {activeTab === 'Support Tickets' && (
+        <div className="space-y-6 animate-fade-in print:hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            
+            {/* Ticket List (Left column, 1/3 wide on desktop) */}
+            <div className="lg:col-span-1 bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm flex flex-col max-h-[700px]">
+              <div className="p-4 border-b border-[#2A2A3D] flex items-center justify-between">
+                <h3 className="font-bold text-xs">Inbox ({supportTickets.length})</h3>
+                <span className="text-[9px] uppercase px-2 py-0.5 rounded-full font-black bg-indigo-500/10 text-indigo-400">
+                  {supportTickets.filter(t => !t.isRead).length} Unread
+                </span>
+              </div>
+              <div className="divide-y divide-[#2A2A3D] overflow-y-auto max-h-[640px]">
+                {supportTickets.length === 0 ? (
+                  <div className="p-12 text-center text-xs text-slate-400">
+                    No support tickets found.
+                  </div>
+                ) : (
+                  supportTickets.map((ticket) => (
+                    <div
+                      key={ticket._id}
+                      onClick={() => setSelectedTicket(ticket)}
+                      className={`p-4 cursor-pointer transition-all flex flex-col gap-1.5 ${
+                        selectedTicket?._id === ticket._id
+                          ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500'
+                          : ticket.isRead
+                          ? 'bg-transparent hover:bg-white/5 border-l-4 border-l-transparent'
+                          : 'bg-[#2A2A3D]/20 hover:bg-white/5 border-l-4 border-l-cyan-400'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center text-[9px] uppercase font-black text-slate-400">
+                        <span className="truncate max-w-[120px]">{ticket.category}</span>
+                        <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <h4 className="text-xs font-extrabold text-white truncate">{ticket.subject}</h4>
+                      <p className="text-[10px] text-slate-350 truncate">From: {ticket.senderName}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Ticket Details (Right column, 2/3 wide on desktop) */}
+            <div className="lg:col-span-2 bg-[#15152E] border border-[#2A2A3D] rounded-3xl p-6 shadow-sm space-y-6 min-h-[400px]">
+              {selectedTicket ? (
+                <div className="space-y-6">
+                  {/* Header details */}
+                  <div className="flex flex-wrap justify-between items-start gap-4 border-b border-[#2A2A3D] pb-4">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                          {selectedTicket.category}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                          selectedTicket.isRead
+                            ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                            : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                        }`}>
+                          {selectedTicket.isRead ? 'Read' : 'Unread'}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-black text-white">{selectedTicket.subject}</h3>
+                      <p className="text-xs text-slate-400 font-semibold">
+                        From: <span className="text-white font-bold">{selectedTicket.senderName}</span> ({selectedTicket.senderEmail})
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleReadTicket(selectedTicket._id)}
+                        className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border transition ${
+                          selectedTicket.isRead
+                            ? 'bg-[#0D0D1A] border-[#2A2A3D] hover:border-slate-350'
+                            : 'bg-indigo-600 border-indigo-600 text-white'
+                        }`}
+                      >
+                        {selectedTicket.isRead ? 'Mark Unread' : 'Mark Read'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTicket(selectedTicket._id)}
+                        className="p-2 bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/20 text-[#EF4444] rounded-xl transition"
+                        title="Delete Ticket"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Message body */}
+                  <div className="space-y-4">
+                    <div className="text-xs font-extrabold uppercase text-cyan-400 tracking-wider">Message Text</div>
+                    <pre className="p-5 bg-[#0D0D1A] border border-[#2A2A3D] rounded-2xl font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed max-h-[400px] overflow-y-auto select-all">
+                      {selectedTicket.messageText}
+                    </pre>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-2 border-t border-[#2A2A3D] flex justify-end">
+                    <a
+                      href={`mailto:${selectedTicket.senderEmail}?subject=Re: ${encodeURIComponent(selectedTicket.subject)}`}
+                      className="inline-flex items-center space-x-2 py-2.5 px-6 rounded-xl text-xs font-black text-black bg-cyan-400 border border-cyan-400 hover:shadow-[3px_3px_0px_0px_#FFFFFF] hover:-translate-x-0.5 hover:-translate-y-0.5 transition duration-150"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                      <span>Reply via Email</span>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full py-20 flex flex-col justify-center items-center text-center text-slate-400 space-y-3">
+                  <Mail className="w-12 h-12 text-[#2A2A3D] animate-pulse" />
+                  <h4 className="font-bold text-sm">No ticket selected</h4>
+                  <p className="text-xs max-w-xs leading-relaxed font-semibold">
+                    Select a support ticket from the inbox list on the left to view full ticket details and send replies.
+                  </p>
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       )}
 

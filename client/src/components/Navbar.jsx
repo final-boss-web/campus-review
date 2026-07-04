@@ -99,6 +99,7 @@ export const Navbar = () => {
   const navLinks = [
     { name: 'Browse Listings', path: '/' },
     { name: 'Scam Feed', path: '/scams' },
+    { name: 'Contact Admin', path: '/contact' },
   ];
 
   return (

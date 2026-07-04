@@ -70,3 +70,180 @@ export const sendOTPEmail = async (email, otp) => {
     return false;
   }
 };
+
+export const sendSupportTicketEmail = async (ticket) => {
+  const transporter = createTransporter();
+  const from = process.env.EMAIL_FROM || '"Campus Review Hub" <no-reply@campus.edu>';
+  const adminEmail = 'studentcodercampus@gmail.com'; // Recipient admin email address requested by user
+
+  let detailsHtml = '';
+  const details = ticket.messageDetails || {};
+
+  if (ticket.category === 'scam') {
+    detailsHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px; width: 35%;">Scammer Name:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.scammerName || 'N/A'}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Contact Details:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.scammerPhone || 'N/A'}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">UPI/Bank Info:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.scammerUpi || 'N/A'}</td>
+        </tr>
+      </table>
+      <div style="margin-top: 20px; border-left: 4px solid #ef4444; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #fef2f2; border-radius: 0 8px 8px 0;">
+        <h4 style="margin: 0 0 8px 0; color: #b91c1c; font-size: 14px; font-weight: bold;">Incident Description</h4>
+        ${(details.description || 'No description provided.').replace(/\n/g, '<br/>')}
+      </div>
+    `;
+  } else if (ticket.category === 'listing') {
+    detailsHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px; width: 35%;">Place Name:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.placeName || 'N/A'} (${details.placeType || 'N/A'})</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Listing URL:</td>
+          <td style="padding: 10px 0; color: #2563eb; font-size: 13px;"><a href="${details.link || '#'}" style="color: #2563eb; text-decoration: underline;">${details.link || 'N/A'}</a></td>
+        </tr>
+      </table>
+      <div style="margin-top: 20px; border-left: 4px solid #f59e0b; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #fffbeb; border-radius: 0 8px 8px 0;">
+        <h4 style="margin: 0 0 8px 0; color: #b45309; font-size: 14px; font-weight: bold;">Report / Correction Details</h4>
+        ${(details.issueDescription || 'No details provided.').replace(/\n/g, '<br/>')}
+      </div>
+    `;
+  } else if (ticket.category === 'feature') {
+    detailsHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px; width: 35%;">Proposal Title:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px; font-weight: bold;">${details.title || 'N/A'}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Community Benefit:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.benefit || 'N/A'}</td>
+        </tr>
+      </table>
+      <div style="margin-top: 20px; border-left: 4px solid #8b5cf6; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #f5f3ff; border-radius: 0 8px 8px 0;">
+        <h4 style="margin: 0 0 8px 0; color: #6d28d9; font-size: 14px; font-weight: bold;">Feature Explanation</h4>
+        ${(details.description || 'No description provided.').replace(/\n/g, '<br/>')}
+      </div>
+    `;
+  } else {
+    detailsHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px; width: 35%;">Subject / Topic:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px; font-weight: bold;">${details.subject || 'N/A'}</td>
+        </tr>
+      </table>
+      <div style="margin-top: 20px; border-left: 4px solid #06b6d4; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #ecfeff; border-radius: 0 8px 8px 0;">
+        <h4 style="margin: 0 0 8px 0; color: #0891b2; font-size: 14px; font-weight: bold;">Message Context</h4>
+        ${(details.message || 'No message provided.').replace(/\n/g, '<br/>')}
+      </div>
+    `;
+  }
+
+  let badgeColor = '#06b6d4';
+  let categoryName = 'General Support';
+  if (ticket.category === 'scam') {
+    badgeColor = '#ef4444';
+    categoryName = 'Rental Scam Report';
+  } else if (ticket.category === 'listing') {
+    badgeColor = '#f59e0b';
+    categoryName = 'Listing Abuse / Correction';
+  } else if (ticket.category === 'feature') {
+    badgeColor = '#8b5cf6';
+    categoryName = 'Feature Request';
+  }
+
+  const htmlBody = `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f3f4f6; padding: 30px 15px; color: #374151; min-height: 100%;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+        
+        <!-- Header -->
+        <div style="background-color: #15152e; padding: 25px; text-align: center; border-bottom: 2px solid #2a2a3d;">
+          <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 0.5px;">CAMPUS REVIEW HUB</h2>
+          <span style="display: inline-block; margin-top: 8px; font-size: 10px; font-weight: bold; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;">Admin Support Portal</span>
+        </div>
+
+        <!-- Body Content -->
+        <div style="padding: 30px;">
+          
+          <!-- Category Badge & Title -->
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 20px;">
+            <span style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #9ca3af; letter-spacing: 0.5px;">Ticket Category:</span>
+            <span style="background-color: ${badgeColor}; color: #ffffff; font-size: 11px; font-weight: bold; padding: 4px 12px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${categoryName}
+            </span>
+          </div>
+
+          <!-- Subject -->
+          <div style="margin: 20px 0;">
+            <h3 style="margin: 0; font-size: 18px; color: #111827; font-weight: 850; line-height: 1.4;">${ticket.subject}</h3>
+            <span style="font-size: 11px; color: #9ca3af; display: block; margin-top: 4px;">Submitted on ${new Date(ticket.createdAt).toLocaleString()}</span>
+          </div>
+
+          <!-- Sender Details Card -->
+          <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; padding: 15px; border-radius: 12px; margin-bottom: 25px;">
+            <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #9ca3af; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Sender Information</span>
+            <div style="display: flex; align-items: center;">
+              <div style="width: 36px; height: 36px; background-color: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #4b5563; font-size: 14px; margin-right: 12px; flex-shrink: 0;">
+                ${ticket.senderName ? ticket.senderName.charAt(0).toUpperCase() : 'S'}
+              </div>
+              <div>
+                <span style="font-size: 13px; font-weight: bold; color: #1f2937; display: block;">${ticket.senderName}</span>
+                <span style="font-size: 11px; color: #6b7280; display: block;">${ticket.senderEmail}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Structured Form Details -->
+          <div style="margin-bottom: 15px;">
+            <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; font-weight: bold; color: #9ca3af; letter-spacing: 0.5px; border-bottom: 1px solid #f3f4f6; padding-bottom: 6px;">Ticket Details</h4>
+            ${detailsHtml}
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; border-top: 1px solid #f3f4f6; padding: 20px; text-align: center;">
+          <p style="margin: 0; font-size: 11px; color: #9ca3af; font-weight: 600;">This is an automated support notification from your Campus Review Hub server.</p>
+          <p style="margin: 8px 0 0 0; font-size: 11px;"><a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/admin" style="color: #4f46e5; text-decoration: none; font-weight: bold;">Go to Admin Control Panel &rarr;</a></p>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: from,
+    to: adminEmail,
+    subject: `[Campus Review Support] ${ticket.subject}`,
+    text: ticket.messageText,
+    html: htmlBody,
+  };
+
+  if (!transporter) {
+    console.log('\n=============================================');
+    console.log(`[EMAIL SIMULATOR] Sending Ticket Email to Admin: ${adminEmail}`);
+    console.log(`[EMAIL SIMULATOR] Subject: ${ticket.subject}`);
+    console.log(`[EMAIL SIMULATOR] Message: \n${ticket.messageText}`);
+    console.log('=============================================\n');
+    return true;
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Support ticket email successfully sent to admin ${adminEmail}. MessageId: ${info.messageId}`);
+    return true;
+  } catch (error) {
+    logger.error(`Error sending support ticket email to admin: ${error.message}`);
+    return false;
+  }
+};

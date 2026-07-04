@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, MapPin, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Sparkles, MapPin, ShieldCheck, HelpCircle, ShieldAlert, Mail } from 'lucide-react';
 
 export const Footer = () => {
   const categories = [
@@ -60,19 +60,26 @@ export const Footer = () => {
             <h4 className="text-xs font-black uppercase tracking-widest text-[#EF4444]">
               Information & Help
             </h4>
-            <ul className="space-y-3 text-xs text-slate-300 font-semibold">
-              <li className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-[#38BDF8]" />
-                <span>Around University Campus</span>
+            <ul className="space-y-3 text-xs text-slate-350 font-semibold">
+              <li className="flex items-center space-x-2.5">
+                <MapPin className="w-4 h-4 text-[#38BDF8] flex-shrink-0" />
+                <span className="text-slate-300">Around University Campus</span>
               </li>
-              <li>
-                <Link to="/scams" className="hover:underline flex items-center space-x-1 text-[#EF4444] font-black">
-                  <span>Reported Scam Portal</span>
+              <li className="flex items-center space-x-2.5">
+                <ShieldAlert className="w-4 h-4 text-[#EF4444] flex-shrink-0" />
+                <Link to="/scams" className="text-[#EF4444] hover:underline font-bold transition">
+                  Reported Scam Portal
                 </Link>
               </li>
-              <li className="flex items-center space-x-2">
-                <HelpCircle className="w-4 h-4 text-[#38BDF8]" />
-                <a href="mailto:studentcodercampus@gmail.com" className="hover:text-white transition">
+              <li className="flex items-center space-x-2.5">
+                <Mail className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <Link to="/contact" className="text-cyan-400 hover:underline font-bold transition">
+                  Contact Support Desk
+                </Link>
+              </li>
+              <li className="flex items-center space-x-2.5">
+                <HelpCircle className="w-4 h-4 text-[#38BDF8] flex-shrink-0" />
+                <a href="mailto:studentcodercampus@gmail.com" className="text-slate-300 hover:text-white transition">
                   studentcodercampus@gmail.com
                 </a>
               </li>
