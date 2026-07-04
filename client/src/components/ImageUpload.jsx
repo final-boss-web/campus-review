@@ -118,7 +118,7 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
       </span>
       
       {/* File Upload Selector */}
-      <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors relative">
+      <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6 bg-slate-100/50 dark:bg-slate-100/50 hover:bg-slate-100 dark:hover:bg-slate-100 transition-colors relative">
         <input
           type="file"
           multiple

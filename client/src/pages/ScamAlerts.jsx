@@ -109,7 +109,7 @@ export const ScamAlerts = () => {
       <div className="flex justify-start">
         <Link
           to="/"
-          className="inline-flex items-center space-x-2 text-xs font-black text-slate-500 hover:text-cyber-purple dark:text-slate-400 dark:hover:text-cyber-cyan transition-all duration-200 bg-white/50 dark:bg-slate-900/50 px-4 py-2.5 rounded-xl border border-slate-200/40 dark:border-slate-800/40 shadow-sm hover:shadow-md"
+          className="inline-flex items-center space-x-2 text-xs font-black text-slate-500 hover:text-cyber-purple dark:text-slate-400 dark:hover:text-cyber-cyan transition-all duration-200 bg-white/50 dark:bg-slate-100/50 px-4 py-2.5 rounded-xl border border-slate-200/40 dark:border-slate-800/40 shadow-sm hover:shadow-md"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
@@ -146,7 +146,7 @@ export const ScamAlerts = () => {
             placeholder="Search scam alerts by landlord name, PG name, key words..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 pl-10 rounded-2xl text-xs focus:outline-none focus:border-red-500 text-slate-800 dark:text-slate-100 shadow-sm"
+            className="w-full bg-white dark:bg-slate-100 border border-slate-200 dark:border-slate-800 p-3 pl-10 rounded-2xl text-xs focus:outline-none focus:border-red-500 text-slate-800 dark:text-slate-900 shadow-sm"
           />
         </div>
 
@@ -154,7 +154,7 @@ export const ScamAlerts = () => {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl text-xs focus:outline-none text-slate-800 dark:text-slate-100 shadow-sm"
+          className="w-full bg-white dark:bg-slate-100 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl text-xs focus:outline-none text-slate-800 dark:text-slate-900 shadow-sm"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -169,11 +169,11 @@ export const ScamAlerts = () => {
       {loading ? (
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="animate-pulse bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl h-44"></div>
+            <div key={i} className="animate-pulse bg-white dark:bg-slate-100 border border-slate-200 dark:border-slate-800 rounded-3xl h-44"></div>
           ))}
         </div>
       ) : scams.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl text-slate-400 space-y-4">
+        <div className="text-center py-20 bg-white dark:bg-slate-100 border border-slate-100 dark:border-slate-800 rounded-3xl text-slate-400 space-y-4">
           <ShieldCheck className="w-12 h-12 text-slate-300 mx-auto" />
           <h3 className="font-bold text-lg">No scam reports found</h3>
           <p className="text-xs">No fraud alerts match your search. Campus is relatively clean!</p>
@@ -183,7 +183,7 @@ export const ScamAlerts = () => {
           {scams.map((scam) => (
             <div
               key={scam._id}
-              className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 p-6 rounded-3xl shadow-sm space-y-4 relative overflow-hidden"
+              className="bg-white dark:bg-slate-100 border border-slate-100 dark:border-slate-800/80 p-6 rounded-3xl shadow-sm space-y-4 relative overflow-hidden"
             >
               {/* Badge for verified scams */}
               {scam.isVerifiedScam && (
@@ -202,7 +202,7 @@ export const ScamAlerts = () => {
                 </span>
               </div>
 
-              <h3 className="text-xl font-bold font-sans text-slate-800 dark:text-slate-100">
+              <h3 className="text-xl font-bold font-sans text-slate-800 dark:text-slate-900">
                 {scam.title}
               </h3>
 
@@ -261,7 +261,7 @@ export const ScamAlerts = () => {
       {/* Report Scam Modal */}
       {isReportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl glass-effect p-6 overflow-y-auto max-h-[90vh]">
+          <div className="relative w-full max-w-xl bg-white dark:bg-slate-100 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl glass-effect p-6 overflow-y-auto max-h-[90vh]">
             
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">

@@ -1101,7 +1101,7 @@ export const AdminDashboard = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {flaggedReviews.map((rev) => (
                     <tr key={rev._id}>
-                      <td className="p-4 font-bold text-slate-850 dark:text-slate-100">
+                      <td className="p-4 font-bold text-slate-850 dark:text-slate-900">
                         {rev.placeId?.name || 'Unknown Place'}
                         <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[9px] uppercase font-bold">
                           {rev.placeType}
