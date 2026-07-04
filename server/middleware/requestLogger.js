@@ -33,6 +33,14 @@ const redactSensitiveData = (data) => {
 };
 
 export const requestLogger = (req, res, next) => {
+  const url = req.originalUrl || req.url;
+  const path = url.split('?')[0];
+
+  // Skip logging for high-frequency / socket.io / health routes to keep logs clean and reduce database overhead
+  if (path.startsWith('/socket.io') || path === '/health' || path === '/favicon.ico') {
+    return next();
+  }
+
   const start = Date.now();
 
   // Extract client IP address
