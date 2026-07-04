@@ -6,7 +6,7 @@ import api from '../services/api.js';
 
 export const Contact = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const [category, setCategory] = useState('scam'); // scam, listing, other
+  const [category, setCategory] = useState('scam'); // scam, listing, partnership, other
   const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   
@@ -26,6 +26,12 @@ export const Contact = () => {
     ownerEmail: '',
     ownerMobile: '',
     issueDescription: '',
+  });
+
+  const [partnershipDetails, setPartnershipDetails] = useState({
+    companyName: '',
+    contactPhone: '',
+    proposalDetails: '',
   });
 
   const [generalDetails, setGeneralDetails] = useState({
@@ -61,6 +67,10 @@ export const Contact = () => {
       return;
     }
     if (category === 'listing' && (!listingDetails.placeName.trim() || !listingDetails.issueDescription.trim())) {
+      setErrorMsg('Please fill in all required fields marked with *');
+      return;
+    }
+    if (category === 'partnership' && (!partnershipDetails.contactPhone.trim() || !partnershipDetails.proposalDetails.trim())) {
       setErrorMsg('Please fill in all required fields marked with *');
       return;
     }
@@ -108,6 +118,14 @@ export const Contact = () => {
         msgText += `Owner Mobile: \n${listingDetails.ownerMobile || 'N/A'}\n\n`;
         msgText += `Problem / Correction Details: \n${listingDetails.issueDescription}\n`;
         messageDetails = listingDetails;
+      } else if (category === 'partnership') {
+        emailSubject = `[Partnership Pitch] - ${partnershipDetails.companyName || senderName}`;
+        msgText += `Category  : Partnership / Collaboration\n`;
+        msgText += `==============================================\n\n`;
+        msgText += `Company / Organization: \n${partnershipDetails.companyName || 'N/A'}\n\n`;
+        msgText += `Contact Phone/Mobile  : \n${partnershipDetails.contactPhone || 'N/A'}\n\n`;
+        msgText += `Pitch / Proposal Details: \n${partnershipDetails.proposalDetails}\n`;
+        messageDetails = partnershipDetails;
       } else {
         emailSubject = `[Support Request] - ${generalDetails.subject}`;
         msgText += `Category  : General Support / Feedback\n`;
@@ -135,6 +153,7 @@ export const Contact = () => {
       // Reset details
       setScamDetails({ scammerName: '', scammerPhone: '', scammerUpi: '', description: '' });
       setListingDetails({ placeName: '', placeType: 'Hostel', link: '', ownerName: '', ownerEmail: '', ownerMobile: '', issueDescription: '' });
+      setPartnershipDetails({ companyName: '', contactPhone: '', proposalDetails: '' });
       setGeneralDetails({ subject: '', message: '' });
     } catch (err) {
       console.error(err);
@@ -201,7 +220,7 @@ export const Contact = () => {
             Contact Site Administrator
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-semibold leading-relaxed">
-            Need to appeal a ban, report listing abuse, or flag a housing scam? Fill out the details below and click Send Message to contact the site administrator.
+            Need to appeal a ban, report listing abuse, pitch a partnership, or flag a housing scam? Fill out the details below to contact the site administrator.
           </p>
         </div>
       </div>
@@ -224,7 +243,7 @@ export const Contact = () => {
               <input
                 type="text"
                 required
-                placeholder="e.g. John Doe"
+                placeholder="John Doe"
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
                 className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
@@ -235,7 +254,7 @@ export const Contact = () => {
               <input
                 type="email"
                 required
-                placeholder="e.g. john@example.com"
+                placeholder="john@example.com"
                 value={senderEmail}
                 onChange={(e) => setSenderEmail(e.target.value)}
                 className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
@@ -253,10 +272,11 @@ export const Contact = () => {
           <label className="text-xs font-extrabold uppercase text-cyan-400 tracking-wider">
             Select Message Category
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
               { id: 'scam', label: 'Rental Scam' },
               { id: 'listing', label: 'Listing Abuse' },
+              { id: 'partnership', label: 'Partnership' },
               { id: 'other', label: 'Other Support' },
             ].map((cat) => (
               <button
@@ -285,7 +305,7 @@ export const Contact = () => {
                 <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Scammer / Broker Name *</label>
                 <input
                   type="text"
-                  placeholder="e.g. John Landlord, Royal PG Brokers"
+                  placeholder="John Landlord, Royal PG Brokers"
                   value={scamDetails.scammerName}
                   onChange={(e) => setScamDetails({ ...scamDetails, scammerName: e.target.value })}
                   className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition animate-fade-in"
@@ -295,7 +315,7 @@ export const Contact = () => {
                 <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Contact Phone / Email *</label>
                 <input
                   type="text"
-                  placeholder="e.g. +91 9876543210, scammer@mail.com"
+                  placeholder="+91 9876543210, scammer@mail.com"
                   value={scamDetails.scammerPhone}
                   onChange={(e) => setScamDetails({ ...scamDetails, scammerPhone: e.target.value })}
                   className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition animate-fade-in"
@@ -305,7 +325,7 @@ export const Contact = () => {
                 <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">UPI ID / Bank details (if any)</label>
                 <input
                   type="text"
-                  placeholder="e.g. scammer@ybl, HDFC Acc No 1234..."
+                  placeholder="scammer@ybl, HDFC Acc No 1234..."
                   value={scamDetails.scammerUpi}
                   onChange={(e) => setScamDetails({ ...scamDetails, scammerUpi: e.target.value })}
                   className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition animate-fade-in"
@@ -331,7 +351,7 @@ export const Contact = () => {
                   <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Place / Listing Name *</label>
                   <input
                     type="text"
-                    placeholder="e.g. Sunrise PG, Green Valley Mess"
+                    placeholder="Sunrise PG, Green Valley Mess"
                     value={listingDetails.placeName}
                     onChange={(e) => setListingDetails({ ...listingDetails, placeName: e.target.value })}
                     className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
@@ -354,7 +374,7 @@ export const Contact = () => {
                 <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Listing URL (Optional)</label>
                 <input
                   type="url"
-                  placeholder="e.g. http://campusreview.app/place/hostel/..."
+                  placeholder="http://campusreview.app/place/hostel/hostel-id"
                   value={listingDetails.link}
                   onChange={(e) => setListingDetails({ ...listingDetails, link: e.target.value })}
                   className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
@@ -367,7 +387,7 @@ export const Contact = () => {
                   <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Owner Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. Ram Singh"
+                    placeholder="Ram Singh"
                     value={listingDetails.ownerName}
                     onChange={(e) => setListingDetails({ ...listingDetails, ownerName: e.target.value })}
                     className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
@@ -377,7 +397,7 @@ export const Contact = () => {
                   <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Owner Email</label>
                   <input
                     type="email"
-                    placeholder="e.g. owner@gmail.com"
+                    placeholder="owner@gmail.com"
                     value={listingDetails.ownerEmail}
                     onChange={(e) => setListingDetails({ ...listingDetails, ownerEmail: e.target.value })}
                     className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
@@ -387,7 +407,7 @@ export const Contact = () => {
                   <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Owner Mobile</label>
                   <input
                     type="tel"
-                    placeholder="e.g. +91 98765..."
+                    placeholder="+91 9876543210"
                     value={listingDetails.ownerMobile}
                     onChange={(e) => setListingDetails({ ...listingDetails, ownerMobile: e.target.value })}
                     className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
@@ -408,13 +428,50 @@ export const Contact = () => {
             </>
           )}
 
+          {category === 'partnership' && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Company / Organization Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. College Club, PG Owner Association, Local Brand"
+                    value={partnershipDetails.companyName}
+                    onChange={(e) => setPartnershipDetails({ ...partnershipDetails, companyName: e.target.value })}
+                    className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Contact Number / Mobile *</label>
+                  <input
+                    type="text"
+                    placeholder="+91 9876543210"
+                    value={partnershipDetails.contactPhone}
+                    onChange={(e) => setPartnershipDetails({ ...partnershipDetails, contactPhone: e.target.value })}
+                    className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1 animate-fade-in">
+                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Partnership / Collaboration Pitch Details *</label>
+                <textarea
+                  rows={5}
+                  placeholder="Describe your partnership proposal, event sponsorships, advertising interest, or collaboration ideas..."
+                  value={partnershipDetails.proposalDetails}
+                  onChange={(e) => setPartnershipDetails({ ...partnershipDetails, proposalDetails: e.target.value })}
+                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
+                />
+              </div>
+            </>
+          )}
+
           {category === 'other' && (
             <>
               <div className="space-y-1 animate-fade-in">
                 <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Subject Topic *</label>
                 <input
                   type="text"
-                  placeholder="e.g. Account restoration, Ban appeal, Partnership"
+                  placeholder="Account restoration, Ban appeal, Bug report"
                   value={generalDetails.subject}
                   onChange={(e) => setGeneralDetails({ ...generalDetails, subject: e.target.value })}
                   className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"

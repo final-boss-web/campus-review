@@ -129,6 +129,23 @@ export const sendSupportTicketEmail = async (ticket) => {
         ${(details.issueDescription || 'No details provided.').replace(/\n/g, '<br/>')}
       </div>
     `;
+  } else if (ticket.category === 'partnership') {
+    detailsHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px; width: 35%;">Company / Org:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.companyName || 'N/A'}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Contact Number:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.contactPhone || 'N/A'}</td>
+        </tr>
+      </table>
+      <div style="margin-top: 20px; border-left: 4px solid #3b82f6; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #eff6ff; border-radius: 0 8px 8px 0;">
+        <h4 style="margin: 0 0 8px 0; color: #1d4ed8; font-size: 14px; font-weight: bold;">Partnership Proposal</h4>
+        ${(details.proposalDetails || 'No details provided.').replace(/\n/g, '<br/>')}
+      </div>
+    `;
   } else {
     detailsHtml = `
       <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
@@ -152,6 +169,9 @@ export const sendSupportTicketEmail = async (ticket) => {
   } else if (ticket.category === 'listing') {
     badgeColor = '#f59e0b';
     categoryName = 'Listing Abuse / Correction';
+  } else if (ticket.category === 'partnership') {
+    badgeColor = '#3b82f6';
+    categoryName = 'Partnership / Collab';
   }
 
   const htmlBody = `
