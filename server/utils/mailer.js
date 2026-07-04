@@ -74,7 +74,7 @@ export const sendOTPEmail = async (email, otp) => {
 export const sendSupportTicketEmail = async (ticket) => {
   const transporter = createTransporter();
   const from = process.env.EMAIL_FROM || '"Campus Review Hub" <no-reply@campus.edu>';
-  const adminEmail = 'vaibhavverma0687@gmail.com'; // Recipient admin email address requested by user
+  const adminEmail = 'studentcodercampus@gmail.com'; // Recipient admin email address requested by user
 
   let detailsHtml = '';
   const details = ticket.messageDetails || {};
