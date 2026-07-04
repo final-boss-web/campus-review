@@ -6,7 +6,7 @@ import api from '../services/api.js';
 
 export const Contact = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const [category, setCategory] = useState('scam'); // scam, listing, feature, other
+  const [category, setCategory] = useState('scam'); // scam, listing, other
   const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   
@@ -22,13 +22,10 @@ export const Contact = () => {
     placeName: '',
     placeType: 'Hostel', // Hostel, Mess, Shop
     link: '',
+    ownerName: '',
+    ownerEmail: '',
+    ownerMobile: '',
     issueDescription: '',
-  });
-
-  const [featureDetails, setFeatureDetails] = useState({
-    title: '',
-    description: '',
-    benefit: '',
   });
 
   const [generalDetails, setGeneralDetails] = useState({
@@ -64,10 +61,6 @@ export const Contact = () => {
       return;
     }
     if (category === 'listing' && (!listingDetails.placeName.trim() || !listingDetails.issueDescription.trim())) {
-      setErrorMsg('Please fill in all required fields marked with *');
-      return;
-    }
-    if (category === 'feature' && (!featureDetails.title.trim() || !featureDetails.description.trim())) {
       setErrorMsg('Please fill in all required fields marked with *');
       return;
     }
@@ -110,16 +103,11 @@ export const Contact = () => {
         msgText += `==============================================\n\n`;
         msgText += `Place Name: \n${listingDetails.placeName} (${listingDetails.placeType})\n\n`;
         msgText += `Listing Link (if any): \n${listingDetails.link || 'N/A'}\n\n`;
+        msgText += `Owner Name: \n${listingDetails.ownerName || 'N/A'}\n\n`;
+        msgText += `Owner Email: \n${listingDetails.ownerEmail || 'N/A'}\n\n`;
+        msgText += `Owner Mobile: \n${listingDetails.ownerMobile || 'N/A'}\n\n`;
         msgText += `Problem / Correction Details: \n${listingDetails.issueDescription}\n`;
         messageDetails = listingDetails;
-      } else if (category === 'feature') {
-        emailSubject = `[Feature Proposal] - ${featureDetails.title}`;
-        msgText += `Category  : Feature Request / Proposal\n`;
-        msgText += `==============================================\n\n`;
-        msgText += `Proposed Feature Title: \n${featureDetails.title}\n\n`;
-        msgText += `How it works / Description: \n${featureDetails.description}\n\n`;
-        msgText += `How it helps students: \n${featureDetails.benefit || 'N/A'}\n`;
-        messageDetails = featureDetails;
       } else {
         emailSubject = `[Support Request] - ${generalDetails.subject}`;
         msgText += `Category  : General Support / Feedback\n`;
@@ -146,8 +134,7 @@ export const Contact = () => {
       
       // Reset details
       setScamDetails({ scammerName: '', scammerPhone: '', scammerUpi: '', description: '' });
-      setListingDetails({ placeName: '', placeType: 'Hostel', link: '', issueDescription: '' });
-      setFeatureDetails({ title: '', description: '', benefit: '' });
+      setListingDetails({ placeName: '', placeType: 'Hostel', link: '', ownerName: '', ownerEmail: '', ownerMobile: '', issueDescription: '' });
       setGeneralDetails({ subject: '', message: '' });
     } catch (err) {
       console.error(err);
@@ -214,7 +201,7 @@ export const Contact = () => {
             Contact Site Administrator
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-semibold leading-relaxed">
-            Need to appeal a ban, report listing abuse, share feedback, or flag a housing scam? Fill out the details below and click Send Message to contact the site administrator.
+            Need to appeal a ban, report listing abuse, or flag a housing scam? Fill out the details below and click Send Message to contact the site administrator.
           </p>
         </div>
       </div>
@@ -266,11 +253,10 @@ export const Contact = () => {
           <label className="text-xs font-extrabold uppercase text-cyan-400 tracking-wider">
             Select Message Category
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
               { id: 'scam', label: 'Rental Scam' },
               { id: 'listing', label: 'Listing Abuse' },
-              { id: 'feature', label: 'Proposal / Idea' },
               { id: 'other', label: 'Other Support' },
             ].map((cat) => (
               <button
@@ -374,6 +360,41 @@ export const Contact = () => {
                   className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
                 />
               </div>
+
+              {/* Owner details */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 animate-fade-in">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Owner Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Ram Singh"
+                    value={listingDetails.ownerName}
+                    onChange={(e) => setListingDetails({ ...listingDetails, ownerName: e.target.value })}
+                    className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Owner Email</label>
+                  <input
+                    type="email"
+                    placeholder="e.g. owner@gmail.com"
+                    value={listingDetails.ownerEmail}
+                    onChange={(e) => setListingDetails({ ...listingDetails, ownerEmail: e.target.value })}
+                    className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Owner Mobile</label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. +91 98765..."
+                    value={listingDetails.ownerMobile}
+                    onChange={(e) => setListingDetails({ ...listingDetails, ownerMobile: e.target.value })}
+                    className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1 animate-fade-in">
                 <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Explain Abuse / Mistake *</label>
                 <textarea
@@ -381,41 +402,6 @@ export const Contact = () => {
                   placeholder="Describe the issue (e.g. false reviews, wrong pricing details, fake photos, incorrect contact number, or listing owner requests info correction)"
                   value={listingDetails.issueDescription}
                   onChange={(e) => setListingDetails({ ...listingDetails, issueDescription: e.target.value })}
-                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
-                />
-              </div>
-            </>
-          )}
-
-          {category === 'feature' && (
-            <>
-              <div className="space-y-1 animate-fade-in">
-                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Feature Proposal Title *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Chat system between tenants, PDF export for receipts"
-                  value={featureDetails.title}
-                  onChange={(e) => setFeatureDetails({ ...featureDetails, title: e.target.value })}
-                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
-                />
-              </div>
-              <div className="space-y-1 animate-fade-in">
-                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Feature Explanation *</label>
-                <textarea
-                  rows={3}
-                  placeholder="Describe your idea or what feature you want added to the application."
-                  value={featureDetails.description}
-                  onChange={(e) => setFeatureDetails({ ...featureDetails, description: e.target.value })}
-                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
-                />
-              </div>
-              <div className="space-y-1 animate-fade-in">
-                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">How it benefits the community</label>
-                <textarea
-                  rows={2}
-                  placeholder="Explain how this helps student reviews, listings safety, or college campus life."
-                  value={featureDetails.benefit}
-                  onChange={(e) => setFeatureDetails({ ...featureDetails, benefit: e.target.value })}
                   className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
                 />
               </div>
