@@ -111,27 +111,22 @@ export const sendSupportTicketEmail = async (ticket) => {
           <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Listing URL:</td>
           <td style="padding: 10px 0; color: #2563eb; font-size: 13px;"><a href="${details.link || '#'}" style="color: #2563eb; text-decoration: underline;">${details.link || 'N/A'}</a></td>
         </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Owner Name:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.ownerName || 'N/A'}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Owner Email:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.ownerEmail || 'N/A'}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Owner Mobile:</td>
+          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.ownerMobile || 'N/A'}</td>
+        </tr>
       </table>
       <div style="margin-top: 20px; border-left: 4px solid #f59e0b; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #fffbeb; border-radius: 0 8px 8px 0;">
         <h4 style="margin: 0 0 8px 0; color: #b45309; font-size: 14px; font-weight: bold;">Report / Correction Details</h4>
         ${(details.issueDescription || 'No details provided.').replace(/\n/g, '<br/>')}
-      </div>
-    `;
-  } else if (ticket.category === 'feature') {
-    detailsHtml = `
-      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-        <tr style="border-bottom: 1px solid #f3f4f6;">
-          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px; width: 35%;">Proposal Title:</td>
-          <td style="padding: 10px 0; color: #1f2937; font-size: 13px; font-weight: bold;">${details.title || 'N/A'}</td>
-        </tr>
-        <tr style="border-bottom: 1px solid #f3f4f6;">
-          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Community Benefit:</td>
-          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.benefit || 'N/A'}</td>
-        </tr>
-      </table>
-      <div style="margin-top: 20px; border-left: 4px solid #8b5cf6; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #f5f3ff; border-radius: 0 8px 8px 0;">
-        <h4 style="margin: 0 0 8px 0; color: #6d28d9; font-size: 14px; font-weight: bold;">Feature Explanation</h4>
-        ${(details.description || 'No description provided.').replace(/\n/g, '<br/>')}
       </div>
     `;
   } else {
@@ -157,9 +152,6 @@ export const sendSupportTicketEmail = async (ticket) => {
   } else if (ticket.category === 'listing') {
     badgeColor = '#f59e0b';
     categoryName = 'Listing Abuse / Correction';
-  } else if (ticket.category === 'feature') {
-    badgeColor = '#8b5cf6';
-    categoryName = 'Feature Request';
   }
 
   const htmlBody = `
