@@ -6,18 +6,11 @@ import api from '../services/api.js';
 
 export const Contact = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const [category, setCategory] = useState('scam'); // scam, listing, partnership, other
+  const [category, setCategory] = useState('listing'); // listing, partnership, other
   const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   
   // State for forms
-  const [scamDetails, setScamDetails] = useState({
-    scammerName: '',
-    scammerPhone: '',
-    scammerUpi: '',
-    description: '',
-  });
-
   const [listingDetails, setListingDetails] = useState({
     placeName: '',
     placeType: 'Hostel', // Hostel, Mess, Shop
@@ -62,10 +55,6 @@ export const Contact = () => {
     }
 
     // Basic validation based on category
-    if (category === 'scam' && (!scamDetails.scammerName.trim() || !scamDetails.scammerPhone.trim() || !scamDetails.description.trim())) {
-      setErrorMsg('Please fill in all required fields marked with *');
-      return;
-    }
     if (category === 'listing' && (!listingDetails.placeName.trim() || !listingDetails.issueDescription.trim())) {
       setErrorMsg('Please fill in all required fields marked with *');
       return;
@@ -98,16 +87,7 @@ export const Contact = () => {
 
       let messageDetails = {};
 
-      if (category === 'scam') {
-        emailSubject = `[Scam Alert] - Report by ${senderName.split(' ')[0]}`;
-        msgText += `Category  : Rental Scam Report\n`;
-        msgText += `==============================================\n\n`;
-        msgText += `Scammer Name/Company: \n${scamDetails.scammerName}\n\n`;
-        msgText += `Scammer Contact No./Email: \n${scamDetails.scammerPhone}\n\n`;
-        msgText += `Scammer Bank/UPI Details (if any): \n${scamDetails.scammerUpi || 'N/A'}\n\n`;
-        msgText += `Incident Description: \n${scamDetails.description}\n`;
-        messageDetails = scamDetails;
-      } else if (category === 'listing') {
+      if (category === 'listing') {
         emailSubject = `[Listing Issue] - ${listingDetails.placeName}`;
         msgText += `Category  : Listing Correction / Abuse Report\n`;
         msgText += `==============================================\n\n`;
@@ -151,7 +131,6 @@ export const Contact = () => {
       setSuccessMsg(data.message || 'Support ticket submitted successfully!');
       
       // Reset details
-      setScamDetails({ scammerName: '', scammerPhone: '', scammerUpi: '', description: '' });
       setListingDetails({ placeName: '', placeType: 'Hostel', link: '', ownerName: '', ownerEmail: '', ownerMobile: '', issueDescription: '' });
       setPartnershipDetails({ companyName: '', contactPhone: '', proposalDetails: '' });
       setGeneralDetails({ subject: '', message: '' });
@@ -220,7 +199,7 @@ export const Contact = () => {
             Contact Site Administrator
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-semibold leading-relaxed">
-            Need to appeal a ban, report listing abuse, pitch a partnership, or flag a housing scam? Fill out the details below to contact the site administrator.
+            Need to appeal a ban, report listing abuse, pitch a partnership, or request general info? Fill out the details below to contact the site administrator.
           </p>
         </div>
       </div>
@@ -272,9 +251,8 @@ export const Contact = () => {
           <label className="text-xs font-extrabold uppercase text-cyan-400 tracking-wider">
             Select Message Category
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              { id: 'scam', label: 'Rental Scam' },
               { id: 'listing', label: 'Listing Abuse' },
               { id: 'partnership', label: 'Partnership' },
               { id: 'other', label: 'Other Support' },
@@ -299,51 +277,6 @@ export const Contact = () => {
 
         {/* DYNAMIC FORM FIELDS */}
         <div className="space-y-4">
-          {category === 'scam' && (
-            <>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Scammer / Broker Name *</label>
-                <input
-                  type="text"
-                  placeholder="John Landlord, Royal PG Brokers"
-                  value={scamDetails.scammerName}
-                  onChange={(e) => setScamDetails({ ...scamDetails, scammerName: e.target.value })}
-                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition animate-fade-in"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Contact Phone / Email *</label>
-                <input
-                  type="text"
-                  placeholder="+91 9876543210, scammer@mail.com"
-                  value={scamDetails.scammerPhone}
-                  onChange={(e) => setScamDetails({ ...scamDetails, scammerPhone: e.target.value })}
-                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition animate-fade-in"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">UPI ID / Bank details (if any)</label>
-                <input
-                  type="text"
-                  placeholder="scammer@ybl, HDFC Acc No 1234..."
-                  value={scamDetails.scammerUpi}
-                  onChange={(e) => setScamDetails({ ...scamDetails, scammerUpi: e.target.value })}
-                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition animate-fade-in"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Detailed Incident Description *</label>
-                <textarea
-                  rows={4}
-                  placeholder="Describe how they tried to scam you (e.g. asking for advance security deposit without showing hostel, vanishing after receiving money, etc.)"
-                  value={scamDetails.description}
-                  onChange={(e) => setScamDetails({ ...scamDetails, description: e.target.value })}
-                  className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none animate-fade-in"
-                />
-              </div>
-            </>
-          )}
-
           {category === 'listing' && (
             <>
               <div className="grid grid-cols-3 gap-2 animate-fade-in">
@@ -435,7 +368,7 @@ export const Contact = () => {
                   <label className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Company / Organization Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. College Club, PG Owner Association, Local Brand"
+                    placeholder="College Club, PG Owner Association, Local Brand"
                     value={partnershipDetails.companyName}
                     onChange={(e) => setPartnershipDetails({ ...partnershipDetails, companyName: e.target.value })}
                     className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"

@@ -74,33 +74,12 @@ export const sendOTPEmail = async (email, otp) => {
 export const sendSupportTicketEmail = async (ticket) => {
   const transporter = createTransporter();
   const from = process.env.EMAIL_FROM || '"Campus Review Hub" <no-reply@campus.edu>';
-  const adminEmail = 'studentcodercampus@gmail.com'; // Recipient admin email address requested by user
+  const adminEmail = 'vaibhavverma0687@gmail.com'; // Recipient admin email address requested by user
 
   let detailsHtml = '';
   const details = ticket.messageDetails || {};
 
-  if (ticket.category === 'scam') {
-    detailsHtml = `
-      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-        <tr style="border-bottom: 1px solid #f3f4f6;">
-          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px; width: 35%;">Scammer Name:</td>
-          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.scammerName || 'N/A'}</td>
-        </tr>
-        <tr style="border-bottom: 1px solid #f3f4f6;">
-          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">Contact Details:</td>
-          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.scammerPhone || 'N/A'}</td>
-        </tr>
-        <tr style="border-bottom: 1px solid #f3f4f6;">
-          <td style="padding: 10px 0; font-weight: bold; color: #4b5563; font-size: 13px;">UPI/Bank Info:</td>
-          <td style="padding: 10px 0; color: #1f2937; font-size: 13px;">${details.scammerUpi || 'N/A'}</td>
-        </tr>
-      </table>
-      <div style="margin-top: 20px; border-left: 4px solid #ef4444; padding: 15px; font-size: 13px; line-height: 1.6; color: #4b5563; background-color: #fef2f2; border-radius: 0 8px 8px 0;">
-        <h4 style="margin: 0 0 8px 0; color: #b91c1c; font-size: 14px; font-weight: bold;">Incident Description</h4>
-        ${(details.description || 'No description provided.').replace(/\n/g, '<br/>')}
-      </div>
-    `;
-  } else if (ticket.category === 'listing') {
+  if (ticket.category === 'listing') {
     detailsHtml = `
       <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
         <tr style="border-bottom: 1px solid #f3f4f6;">
@@ -163,10 +142,7 @@ export const sendSupportTicketEmail = async (ticket) => {
 
   let badgeColor = '#06b6d4';
   let categoryName = 'General Support';
-  if (ticket.category === 'scam') {
-    badgeColor = '#ef4444';
-    categoryName = 'Rental Scam Report';
-  } else if (ticket.category === 'listing') {
+  if (ticket.category === 'listing') {
     badgeColor = '#f59e0b';
     categoryName = 'Listing Abuse / Correction';
   } else if (ticket.category === 'partnership') {
