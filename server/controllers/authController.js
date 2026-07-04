@@ -185,7 +185,7 @@ export const register = async (req, res, next) => {
 
       await sendOTPEmail(existingUser.email, otp);
       return res.status(200).json({
-        message: 'Registration OTP sent to email. Please verify.',
+        message: 'Registration OTP sent to email. Please verify (check your spam folder if not received).',
         email: existingUser.email,
       });
     }
@@ -211,7 +211,7 @@ export const register = async (req, res, next) => {
     await sendOTPEmail(user.email, otp);
 
     res.status(201).json({
-      message: 'Account registered successfully! Verification OTP has been sent to your email.',
+      message: 'Account registered successfully! Verification OTP has been sent to your email (please check your spam folder if you do not see it).',
       email: user.email,
     });
   } catch (error) {
@@ -305,7 +305,7 @@ export const forgotPassword = async (req, res, next) => {
 
     await sendOTPEmail(user.email, otp);
 
-    res.status(200).json({ message: 'Password reset OTP has been sent to your email.' });
+    res.status(200).json({ message: 'Password reset OTP has been sent to your email (please check your spam folder if you do not see it).' });
   } catch (error) {
     next(error);
   }
@@ -458,7 +458,7 @@ export const resendOTP = async (req, res, next) => {
 
     await sendOTPEmail(user.email, otp);
 
-    res.status(200).json({ message: 'A new verification OTP has been sent to your email.' });
+    res.status(200).json({ message: 'A new verification OTP has been sent to your email (please check your spam folder if you do not see it).' });
   } catch (error) {
     next(error);
   }

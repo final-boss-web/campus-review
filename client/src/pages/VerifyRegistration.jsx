@@ -96,6 +96,12 @@ export const VerifyRegistration = () => {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+            Please enter the 6-digit verification code sent to your email.
+            <span className="block mt-1 text-[#38BDF8] font-semibold">
+              Tip: Check your spam/junk folder if you can't find the email.
+            </span>
+          </p>
           {error && (
             <div className="flex items-center space-x-2 p-3 text-xs font-black text-white bg-[#EF4444] border border-[#EF4444] rounded-xl">
               <ShieldAlert className="w-4.5 h-4.5 flex-shrink-0" />

@@ -174,6 +174,9 @@ export const ForgotPassword = () => {
           <form onSubmit={handleOtpVerify} className="p-6 space-y-4">
             <p className="text-xs text-slate-400 font-semibold leading-relaxed">
               We have sent a 6-digit verification code to <strong className="text-white">{email}</strong>. Please enter it below.
+              <span className="block mt-1 text-[#38BDF8] font-semibold">
+                Tip: Check your spam/junk folder if you can't find the email.
+              </span>
             </p>
 
             {error && (
