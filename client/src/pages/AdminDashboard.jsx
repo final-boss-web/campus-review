@@ -45,15 +45,17 @@ import {
 import api from '../services/api.js';
 
 export const AdminDashboard = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   // Admin access validation
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      navigate('/');
+    if (!authLoading) {
+      if (!user || user.role !== 'admin') {
+        navigate('/');
+      }
     }
-  }, [user]);
+  }, [user, authLoading, navigate]);
 
   // Dashboard Stats States (Moderation)
   const [stats, setStats] = useState(null);
@@ -81,16 +83,17 @@ export const AdminDashboard = () => {
   const [activityActionFilter, setActivityActionFilter] = useState('');
 
   useEffect(() => {
-    fetchDashboardData();
-    fetchAnalyticsData('7d');
-  }, []);
+    if (!authLoading && user && user.role === 'admin') {
+      fetchDashboardData();
+    }
+  }, [authLoading, user]);
 
   // Fetch stats when filter changes
   useEffect(() => {
-    if (analyticsRange !== 'custom') {
+    if (!authLoading && user && user.role === 'admin' && analyticsRange !== 'custom') {
       fetchAnalyticsData(analyticsRange);
     }
-  }, [analyticsRange]);
+  }, [analyticsRange, authLoading, user]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
