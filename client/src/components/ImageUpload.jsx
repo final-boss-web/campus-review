@@ -35,28 +35,41 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
           continue;
         }
 
-        // 1. Get ImageKit auth parameters
+        // 1. Get upload auth parameters from the unified auth endpoint
         let signatureData;
         let isMock = false;
         try {
-          const { data } = await api.get('/upload/imagekit-auth');
+          const { data } = await api.get('/upload/auth');
           signatureData = data;
         } catch (err) {
-          console.warn('Backend ImageKit credentials not configured. Using simulator mock upload.');
+          console.warn('Backend upload credentials not configured. Using simulator mock upload.');
           isMock = true;
         }
 
-        const pubKey = signatureData?.publicKey || '';
-        const isPlaceholder = 
-          pubKey === 'mock_public_key' || 
-          pubKey === 'your_imagekit_public_key' || 
-          pubKey.startsWith('your_') || 
-          !pubKey;
+        const provider = signatureData?.provider || 'imagekit';
+        
+        let isPlaceholder = false;
+        if (provider === 'imagekit') {
+          const pubKey = signatureData?.publicKey || '';
+          isPlaceholder = 
+            pubKey === 'mock_public_key' || 
+            pubKey === 'your_imagekit_public_key' || 
+            pubKey.startsWith('your_') || 
+            !pubKey;
+        } else {
+          const apiKey = signatureData?.apiKey || '';
+          isPlaceholder = 
+            apiKey === 'mock_api_key' || 
+            apiKey === 'your_cloudinary_api_key' || 
+            apiKey.startsWith('your_') || 
+            !apiKey || 
+            signatureData.isMock;
+        }
 
         if (isMock || !signatureData || isPlaceholder) {
           // Simulator fallback
           await new Promise((resolve) => setTimeout(resolve, 800)); // simulate network delay
-          const mockId = 'mock_ik_' + Math.floor(Math.random() * 1000000);
+          const mockId = 'mock_' + (provider === 'cloudinary' ? 'cl_' : 'ik_') + Math.floor(Math.random() * 1000000);
           
           const base64Data = await new Promise((resolve) => {
             const reader = new FileReader();
@@ -69,7 +82,7 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
             fileId: mockId,
             thumbnailUrl: base64Data,
           });
-        } else {
+        } else if (provider === 'imagekit') {
           // Actual ImageKit direct upload
           const formData = new FormData();
           formData.append('file', file);
@@ -94,6 +107,30 @@ export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Im
             url: uploadRes.data.url,
             fileId: uploadRes.data.fileId,
             thumbnailUrl: uploadRes.data.thumbnailUrl,
+          });
+        } else if (provider === 'cloudinary') {
+          // Actual Cloudinary direct upload
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('api_key', signatureData.apiKey);
+          formData.append('timestamp', signatureData.timestamp);
+          formData.append('signature', signatureData.signature);
+          formData.append('folder', signatureData.folder);
+
+          const uploadRes = await axios.post(
+            `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+
+          uploadedImages.push({
+            url: uploadRes.data.secure_url || uploadRes.data.url,
+            fileId: uploadRes.data.public_id,
+            thumbnailUrl: uploadRes.data.secure_url || uploadRes.data.url,
           });
         }
       }

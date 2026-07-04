@@ -85,6 +85,10 @@ export const AdminDashboard = () => {
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityActionFilter, setActivityActionFilter] = useState('');
 
+  // Scam details Modal states
+  const [isScamModalOpen, setIsScamModalOpen] = useState(false);
+  const [selectedScam, setSelectedScam] = useState(null);
+
   useEffect(() => {
     if (!authLoading && user && user.role === 'admin') {
       fetchDashboardData();
@@ -989,7 +993,17 @@ export const AdminDashboard = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {scamReports.map((scam) => (
                     <tr key={scam._id}>
-                      <td className="p-4 font-bold text-white">{scam.title}</td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => {
+                            setSelectedScam(scam);
+                            setIsScamModalOpen(true);
+                          }}
+                          className="font-bold text-white hover:text-indigo-400 hover:underline transition text-left"
+                        >
+                          {scam.title}
+                        </button>
+                      </td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-600 font-bold text-[10px]">
                           {scam.category}
@@ -1014,7 +1028,17 @@ export const AdminDashboard = () => {
                           <span className="text-slate-400 font-semibold">Unverified</span>
                         )}
                       </td>
-                      <td className="p-4 flex space-x-2">
+                      <td className="p-4 flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedScam(scam);
+                            setIsScamModalOpen(true);
+                          }}
+                          className="p-1 text-indigo-400 hover:bg-indigo-500/10 rounded"
+                          title="View Details"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </button>
                         {!scam.isVerifiedScam && (
                           <button
                             onClick={() => handleVerifyScam(scam._id)}
@@ -1449,6 +1473,179 @@ export const AdminDashboard = () => {
                 className="py-2.5 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-[#15152E] border border-[#2A2A3D] dark:hover:bg-slate-700 transition text-xs"
               >
                 Close Logs
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scam Report Details Modal */}
+      {isScamModalOpen && selectedScam && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl bg-[#15152E] border border-[#2A2A3D] rounded-3xl shadow-2xl glass-effect p-6 overflow-hidden flex flex-col max-h-[85vh]">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#2A2A3D] pb-4 mb-4 flex-shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-red-500/10 rounded-xl text-red-500">
+                  <AlertTriangle className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white">Scam Report Details</h3>
+                  <span className="text-xs text-slate-400">
+                    Category: <span className="text-red-500 font-bold">{selectedScam.category}</span>
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsScamModalOpen(false);
+                  setSelectedScam(null);
+                }}
+                className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                <XCircle className="w-6 h-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-slate-300">
+              {/* Title & Date */}
+              <div className="bg-[#1C1C3A] border border-[#2A2A3D] p-4 rounded-2xl">
+                <h4 className="text-sm font-bold text-white mb-1">Report Title</h4>
+                <p className="text-xs font-semibold text-slate-300">{selectedScam.title}</p>
+                
+                <div className="mt-3 flex items-center space-x-2 text-[10px] text-slate-400">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Reported on: {new Date(selectedScam.createdAt).toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Reported By */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-[#1C1C3A] border border-[#2A2A3D] p-4 rounded-2xl">
+                  <h4 className="text-sm font-bold text-white mb-2">Reporter Information</h4>
+                  {selectedScam.student ? (
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={selectedScam.student.avatar || 'https://picsum.photos/150'}
+                        alt={selectedScam.student.name}
+                        className="w-10 h-10 rounded-full object-cover border border-slate-700"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-white">{selectedScam.student.name}</p>
+                        <p className="text-[10px] text-slate-400">{selectedScam.student.email}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">Anonymous Student</p>
+                  )}
+                </div>
+
+                <div className="bg-[#1C1C3A] border border-[#2A2A3D] p-4 rounded-2xl">
+                  <h4 className="text-sm font-bold text-white mb-2">Status & Verification</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-xs">
+                      <span className="text-slate-400 mr-2">Current Status:</span>
+                      {selectedScam.isVerifiedScam ? (
+                        <span className="px-2.5 py-0.5 rounded bg-green-500/10 text-green-600 font-bold text-[10px] flex items-center">
+                          <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verified
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-bold text-[10px]">
+                          Unverified
+                        </span>
+                      )}
+                    </div>
+
+                    {selectedScam.targetPlaceId && (
+                      <div className="text-xs">
+                        <span className="text-slate-400 mr-1">Target Place:</span>
+                        <span className="font-bold text-indigo-400">
+                          {selectedScam.targetPlaceId.name} ({selectedScam.targetPlaceType})
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="bg-[#1C1C3A] border border-[#2A2A3D] p-4 rounded-2xl">
+                <h4 className="text-sm font-bold text-white mb-2">Description & Incident Details</h4>
+                <p className="text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-semibold">
+                  {selectedScam.description}
+                </p>
+              </div>
+
+              {/* Proof Images */}
+              <div className="bg-[#1C1C3A] border border-[#2A2A3D] p-4 rounded-2xl">
+                <h4 className="text-sm font-bold text-white mb-3">Uploaded Proof & Evidence</h4>
+                {selectedScam.proofImages && selectedScam.proofImages.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {selectedScam.proofImages.map((img, index) => (
+                      <a
+                        key={img.fileId || index}
+                        href={img.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group relative rounded-xl overflow-hidden aspect-video border border-[#2A2A3D] bg-slate-900 block"
+                        title="Click to view full size"
+                      >
+                        <img
+                          src={img.thumbnailUrl || img.url}
+                          alt={`Proof ${index + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                          <Eye className="w-5 h-5 text-white" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No proof images uploaded for this report.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-[#2A2A3D] pt-4 mt-4 flex justify-between flex-shrink-0">
+              <div className="flex space-x-2">
+                {!selectedScam.isVerifiedScam && (
+                  <button
+                    onClick={() => {
+                      handleVerifyScam(selectedScam._id);
+                      setIsScamModalOpen(false);
+                      setSelectedScam(null);
+                    }}
+                    className="py-2.5 px-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-xs transition flex items-center space-x-1"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Verify Report</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    handleDeleteScam(selectedScam._id);
+                    setIsScamModalOpen(false);
+                    setSelectedScam(null);
+                  }}
+                  className="py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs transition flex items-center space-x-1"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete Report</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsScamModalOpen(false);
+                  setSelectedScam(null);
+                }}
+                className="py-2.5 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-[#15152E] border border-[#2A2A3D] dark:hover:bg-slate-700 transition text-xs"
+              >
+                Close Details
               </button>
             </div>
           </div>
