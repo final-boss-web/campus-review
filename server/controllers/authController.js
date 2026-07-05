@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import logger from '../config/logger.js';
-import { sendOTPEmail } from '../utils/mailer.js';
+import { sendOTPEmail, validateEmailDomain } from '../utils/mailer.js';
 
 let googleClient;
 const getGoogleClient = () => {
@@ -169,6 +169,18 @@ export const register = async (req, res, next) => {
       return res.status(400).json({ message: 'Name, email and password are required' });
     }
 
+    // Email syntax validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email address format.' });
+    }
+
+    // DNS and disposable email verification
+    const isDomainValid = await validateEmailDomain(email);
+    if (!isDomainValid) {
+      return res.status(400).json({ message: 'Invalid email address: the domain does not exist, cannot receive mail, or is a temporary email provider.' });
+    }
+
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       if (existingUser.isVerified) {
@@ -183,7 +195,11 @@ export const register = async (req, res, next) => {
       existingUser.otpExpiry = Date.now() + 15 * 60 * 1000;
       await existingUser.save();
 
-      await sendOTPEmail(existingUser.email, otp);
+      const emailSent = await sendOTPEmail(existingUser.email, otp);
+      if (!emailSent) {
+        return res.status(500).json({ message: 'Failed to send verification email. Please check if your email address is correct and valid.' });
+      }
+
       return res.status(200).json({
         message: 'Registration OTP sent to email. Please verify (check your spam folder if not received).',
         email: existingUser.email,
@@ -208,7 +224,12 @@ export const register = async (req, res, next) => {
       otpExpiry,
     });
 
-    await sendOTPEmail(user.email, otp);
+    const emailSent = await sendOTPEmail(user.email, otp);
+    if (!emailSent) {
+      // Rollback database user document creation
+      await User.deleteOne({ _id: user._id });
+      return res.status(500).json({ message: 'Failed to send verification email. Please check if your email address is correct and valid.' });
+    }
 
     res.status(201).json({
       message: 'Account registered successfully! Verification OTP has been sent to your email (please check your spam folder if you do not see it).',
@@ -303,7 +324,10 @@ export const forgotPassword = async (req, res, next) => {
     user.isResetOtpVerified = false;
     await user.save();
 
-    await sendOTPEmail(user.email, otp);
+    const emailSent = await sendOTPEmail(user.email, otp);
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Failed to send password reset OTP. Please check if your email address is correct and valid.' });
+    }
 
     res.status(200).json({ message: 'Password reset OTP has been sent to your email (please check your spam folder if you do not see it).' });
   } catch (error) {
@@ -456,7 +480,10 @@ export const resendOTP = async (req, res, next) => {
     }
     await user.save();
 
-    await sendOTPEmail(user.email, otp);
+    const emailSent = await sendOTPEmail(user.email, otp);
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Failed to resend verification OTP. Please check if your email address is correct and valid.' });
+    }
 
     res.status(200).json({ message: 'A new verification OTP has been sent to your email (please check your spam folder if you do not see it).' });
   } catch (error) {
