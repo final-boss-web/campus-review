@@ -3,6 +3,61 @@ import { Upload, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import api from '../services/api.js';
 
+/**
+ * Helper to compress images on the client side before upload
+ */
+const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.75) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Canvas is empty'));
+              return;
+            }
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload Images' }) => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -33,6 +88,14 @@ export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload I
         if (!file.type.startsWith('image/')) {
           setError(`File ${file.name} is not an image.`);
           continue;
+        }
+
+        // Compress the image before uploading to reduce network load
+        let fileToUpload = file;
+        try {
+          fileToUpload = await compressImage(file, 1200, 1200, 0.75);
+        } catch (compressErr) {
+          console.warn('Image compression failed, uploading original:', compressErr);
         }
 
         // 1. Get upload auth parameters from the unified auth endpoint
@@ -74,7 +137,7 @@ export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload I
           const base64Data = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(fileToUpload);
           });
 
           uploadedImages.push({
@@ -85,8 +148,8 @@ export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload I
         } else if (provider === 'imagekit') {
           // Actual ImageKit direct upload
           const formData = new FormData();
-          formData.append('file', file);
-          formData.append('fileName', file.name);
+          formData.append('file', fileToUpload);
+          formData.append('fileName', fileToUpload.name);
           formData.append('publicKey', signatureData.publicKey || '');
           formData.append('signature', signatureData.signature);
           formData.append('expire', signatureData.expire);
@@ -111,7 +174,7 @@ export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload I
         } else if (provider === 'cloudinary') {
           // Actual Cloudinary direct upload
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append('file', fileToUpload);
           formData.append('api_key', signatureData.apiKey);
           formData.append('timestamp', signatureData.timestamp);
           formData.append('signature', signatureData.signature);
