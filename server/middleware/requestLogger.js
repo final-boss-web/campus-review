@@ -174,6 +174,9 @@ export const requestLogger = (req, res, next) => {
       action = 'Upload';
     } else if (path.startsWith('/api/places') && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
       action = 'Admin Action';
+    } else if (path.startsWith('/api/places') && method === 'GET' && req.query.search) {
+      action = 'Search';
+      cleanQuery.q = req.query.search;
     }
 
     // Security flags check
@@ -216,49 +219,51 @@ export const requestLogger = (req, res, next) => {
     const latitude = req.headers['x-client-latitude'] ? parseFloat(req.headers['x-client-latitude']) : (req.body?.latitude || null);
     const longitude = req.headers['x-client-longitude'] ? parseFloat(req.headers['x-client-longitude']) : (req.body?.longitude || null);
 
-    // Save to Database ActivityLog (asynchronous background task)
-    ActivityLog.create({
-      user: userId,
-      username,
-      fullName,
-      email,
-      action,
-      sessionId,
-      jwtId,
-      ip,
-      country,
-      state,
-      city,
-      timezone,
-      latitude,
-      longitude,
-      browser: ua.browser.name || 'Unknown Browser',
-      browserVersion: ua.browser.version || 'Unknown',
-      os: ua.os.name || 'Unknown OS',
-      deviceType: ua.device.type || 'desktop',
-      platform: ua.os.name || 'Unknown',
-      userAgent: req.headers['user-agent'] || 'Unknown User-Agent',
-      screenResolution,
-      currentPage: currentPage || path,
-      previousPage,
-      referrer,
-      requestUrl: url,
-      apiEndpoint: path,
-      httpMethod: method,
-      requestBody: cleanBody,
-      queryParams: cleanQuery,
-      responseStatus: status,
-      responseTime: duration,
-      security: {
-        failedLogin,
-        invalidJwt,
-        unauthorizedAccess,
-        rateLimitTrigger,
-        suspiciousActivity,
-      },
-    }).catch((dbErr) => {
-      logger.error(`Database ActivityLog saving error: ${dbErr.message}`);
-    });
+    // Save to Database ActivityLog if not a generic API Request (asynchronous background task)
+    if (action !== 'API Request') {
+      ActivityLog.create({
+        user: userId,
+        username,
+        fullName,
+        email,
+        action,
+        sessionId,
+        jwtId,
+        ip,
+        country,
+        state,
+        city,
+        timezone,
+        latitude,
+        longitude,
+        browser: ua.browser.name || 'Unknown Browser',
+        browserVersion: ua.browser.version || 'Unknown',
+        os: ua.os.name || 'Unknown OS',
+        deviceType: ua.device.type || 'desktop',
+        platform: ua.os.name || 'Unknown',
+        userAgent: req.headers['user-agent'] || 'Unknown User-Agent',
+        screenResolution,
+        currentPage: currentPage || path,
+        previousPage,
+        referrer,
+        requestUrl: url,
+        apiEndpoint: path,
+        httpMethod: method,
+        requestBody: cleanBody,
+        queryParams: cleanQuery,
+        responseStatus: status,
+        responseTime: duration,
+        security: {
+          failedLogin,
+          invalidJwt,
+          unauthorizedAccess,
+          rateLimitTrigger,
+          suspiciousActivity,
+        },
+      }).catch((dbErr) => {
+        logger.error(`Database ActivityLog saving error: ${dbErr.message}`);
+      });
+    }
   });
 
   next();
