@@ -20,6 +20,9 @@ import {
   Plus,
   Compass,
   ArrowLeft,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
@@ -63,6 +66,25 @@ export const PlaceDetail = () => {
 
   // Share Widget
   const [showShareQR, setShowShareQR] = useState(false);
+
+  // Lightbox Modal state for full-screen photo viewing
+  const [activePhotoIdx, setActivePhotoIdx] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (activePhotoIdx === null || !place?.images?.length) return;
+      if (e.key === 'Escape') {
+        setActivePhotoIdx(null);
+      } else if (e.key === 'ArrowRight') {
+        setActivePhotoIdx((prev) => (prev === place.images.length - 1 ? 0 : prev + 1));
+      } else if (e.key === 'ArrowLeft') {
+        setActivePhotoIdx((prev) => (prev === 0 ? place.images.length - 1 : prev - 1));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePhotoIdx, place?.images]);
 
   // Edit & Photo management states
   const [isEditMode, setIsEditMode] = useState(false);
@@ -711,20 +733,16 @@ export const PlaceDetail = () => {
                 {place.images.map((img, idx) => (
                   <div
                     key={img.fileId || idx}
-                    className="group relative rounded-2xl overflow-hidden aspect-video bg-[#15152E] border border-[#2A2A3D] shadow-sm hover:border-white transition duration-155"
+                    className="group relative rounded-2xl overflow-hidden aspect-video bg-[#15152E] border border-[#2A2A3D] shadow-sm hover:border-white transition duration-155 cursor-pointer"
+                    onClick={() => setActivePhotoIdx(idx)}
                   >
-                    <a
-                      href={img.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full h-full block"
-                    >
+                    <div className="w-full h-full block">
                       <LazyImage
                         src={getOptimizedImageUrl(img, 800, 600)}
                         alt={`${place.name} media ${idx + 1}`}
                         className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                       />
-                    </a>
+                    </div>
                     {user?.role === 'admin' && (
                       <button
                         type="button"
@@ -845,21 +863,25 @@ export const PlaceDetail = () => {
                 <div className="space-y-2">
                   <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Menu Cards / Price Lists</span>
                   <div className="flex flex-wrap gap-3">
-                    {place.menuImages.map((img, idx) => (
-                      <a
-                        key={img.fileId || idx}
-                        href={img.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group relative w-24 h-24 rounded-xl overflow-hidden border border-[#2A2A3D] hover:border-white transition duration-150"
-                      >
-                        <LazyImage
-                          src={getOptimizedImageUrl(img, 300, 300)}
-                          alt="Menu page"
-                          className="w-full h-full object-cover"
-                        />
-                      </a>
-                    ))}
+                    {place.menuImages.map((img, idx) => {
+                      const isBase64 = img.url?.startsWith('data:');
+                      const AnchorOrDiv = isBase64 ? 'div' : 'a';
+                      return (
+                        <AnchorOrDiv
+                          key={img.fileId || idx}
+                          href={isBase64 ? undefined : img.url}
+                          target={isBase64 ? undefined : "_blank"}
+                          rel={isBase64 ? undefined : "noreferrer"}
+                          className={`group relative w-24 h-24 rounded-xl overflow-hidden border border-[#2A2A3D] hover:border-white transition duration-150 ${isBase64 ? 'cursor-default' : 'cursor-pointer'}`}
+                        >
+                          <LazyImage
+                            src={getOptimizedImageUrl(img, 300, 300)}
+                            alt="Menu page"
+                            className="w-full h-full object-cover"
+                          />
+                        </AnchorOrDiv>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1080,21 +1102,25 @@ export const PlaceDetail = () => {
                   {/* Review Images */}
                   {rev.images?.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {rev.images.map((img) => (
-                        <a
-                          key={img.fileId}
-                          href={img.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="w-16 h-12 rounded-lg overflow-hidden border border-[#2A2A3D]"
-                        >
-                          <LazyImage
-                            src={getOptimizedImageUrl(img, 200, 150)}
-                            alt="Review attachment"
-                            className="w-full h-full object-cover"
-                          />
-                        </a>
-                      ))}
+                      {rev.images.map((img) => {
+                        const isBase64 = img.url?.startsWith('data:');
+                        const AnchorOrDiv = isBase64 ? 'div' : 'a';
+                        return (
+                          <AnchorOrDiv
+                            key={img.fileId}
+                            href={isBase64 ? undefined : img.url}
+                            target={isBase64 ? undefined : "_blank"}
+                            rel={isBase64 ? undefined : "noreferrer"}
+                            className={`w-16 h-12 rounded-lg overflow-hidden border border-[#2A2A3D] ${isBase64 ? 'cursor-default' : 'cursor-pointer'}`}
+                          >
+                            <LazyImage
+                              src={getOptimizedImageUrl(img, 200, 150)}
+                              alt="Review attachment"
+                              className="w-full h-full object-cover"
+                            />
+                          </AnchorOrDiv>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -1187,6 +1213,64 @@ export const PlaceDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Lightbox Modal for Gallery Images */}
+      {activePhotoIdx !== null && place.images?.[activePhotoIdx] && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setActivePhotoIdx(null)}
+        >
+          {/* Close Button */}
+          <button 
+            onClick={() => setActivePhotoIdx(null)}
+            className="absolute top-6 right-6 p-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:scale-105 transition-all text-white cursor-pointer z-50 animate-fade-in"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Left Arrow */}
+          {place.images.length > 1 && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setActivePhotoIdx((prev) => (prev === 0 ? place.images.length - 1 : prev - 1));
+              }}
+              className="absolute left-6 p-3 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:scale-105 transition-all text-white cursor-pointer z-50"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Image Container */}
+          <div 
+            className="relative max-w-5xl max-h-[85vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={place.images[activePhotoIdx].url} 
+              alt={`${place.name} expanded`}
+              className="max-w-full max-h-[80vh] object-contain rounded-xl border border-white/10 shadow-2xl animate-scale-up"
+            />
+            {/* Photo Counter */}
+            <span className="absolute bottom-[-32px] text-xs font-black text-white bg-black/60 px-3 py-1 rounded-full border border-white/10">
+              {activePhotoIdx + 1} / {place.images.length}
+            </span>
+          </div>
+
+          {/* Right Arrow */}
+          {place.images.length > 1 && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setActivePhotoIdx((prev) => (prev === place.images.length - 1 ? 0 : prev + 1));
+              }}
+              className="absolute right-6 p-3 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:scale-105 transition-all text-white cursor-pointer z-50"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
