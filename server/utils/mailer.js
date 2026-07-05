@@ -1,5 +1,82 @@
 import nodemailer from 'nodemailer';
 import logger from '../config/logger.js';
+import dns from 'dns/promises';
+
+// List of common disposable/temporary email domains to prevent quick fake registrations
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com',
+  '10minutemail.com',
+  'tempmail.com',
+  'guerrillamail.com',
+  'sharklasers.com',
+  'guerrillamailblock.com',
+  'guerrillamail.net',
+  'guerrillamail.org',
+  'guerrillamail.biz',
+  'yopmail.com',
+  'dispostable.com',
+  'getairmail.com',
+  'throwawaymail.com',
+  'temp-mail.org',
+]);
+
+const checkOffline = async () => {
+  try {
+    const addresses = await dns.resolve('google.com');
+    return !addresses || addresses.length === 0;
+  } catch (err) {
+    return true;
+  }
+};
+
+/**
+ * Validates the email domain via DNS check and verifies it is not a disposable domain.
+ * @param {string} email
+ * @returns {Promise<boolean>} True if valid, false otherwise.
+ */
+export const validateEmailDomain = async (email) => {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return false;
+  }
+  const domain = email.split('@')[1];
+  if (!domain) {
+    return false;
+  }
+
+  const domainLower = domain.toLowerCase().trim();
+  if (DISPOSABLE_DOMAINS.has(domainLower)) {
+    logger.warn(`Email validation failed: ${email} is from a blacklisted disposable domain.`);
+    return false;
+  }
+
+  try {
+    // Resolve MX (Mail Exchange) records
+    const mx = await dns.resolveMx(domainLower);
+    if (mx && mx.length > 0) {
+      return true;
+    }
+  } catch (err) {
+    // Fallback: Check standard A records if MX doesn't exist (some domains fall back to A records for mail)
+    try {
+      const addresses = await dns.resolve(domainLower);
+      if (addresses && addresses.length > 0) {
+        return true;
+      }
+    } catch (err2) {
+      // If resolving failed, verify if it was because we are offline.
+      // We only allow lookup failures if the server is genuinely offline.
+      const isOffline = await checkOffline();
+      if (isOffline) {
+        logger.warn(`DNS lookup failed for domain "${domain}" (${err2.message}) but allowed because the system appears to be offline.`);
+        return true;
+      }
+      logger.warn(`Email validation failed: DNS lookup failed for domain "${domain}" (${err2.message}).`);
+      return false;
+    }
+  }
+  return false;
+};
+
 
 // Create SMTP Transporter
 const createTransporter = () => {
