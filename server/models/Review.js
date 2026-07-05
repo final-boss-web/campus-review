@@ -6,16 +6,19 @@ const ReviewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+      index: true,
     },
     placeType: {
       type: String,
       required: true,
       enum: ['Hostel', 'Mess', 'Shop'],
+      index: true,
     },
     placeId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       refPath: 'placeType',
+      index: true,
     },
     rating: {
       type: Number,

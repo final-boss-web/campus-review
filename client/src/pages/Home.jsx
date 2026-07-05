@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
+import LazyImage from '../components/LazyImage.jsx';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer.js';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -233,9 +235,9 @@ export const Home = () => {
               className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
             >
               <div>
-                <div className="relative aspect-video bg-zinc-955 border-b border-[#2A2A3D] overflow-hidden">
-                  <img
-                    src={hostel.images[0]?.url || 'https://picsum.photos/600/400'}
+                <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
+                  <LazyImage
+                    src={getOptimizedImageUrl(hostel.images[0], 600, 400)}
                     alt={hostel.name}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                   />
@@ -292,9 +294,9 @@ export const Home = () => {
                 className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
               >
                 <div>
-                  <div className="relative aspect-video bg-zinc-950 border-b border-[#2A2A3D] overflow-hidden">
-                    <img
-                      src={isRedSpice ? fallbackImage : (mess.images[0]?.url || fallbackImage)}
+                  <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
+                    <LazyImage
+                      src={getOptimizedImageUrl(isRedSpice ? fallbackImage : (mess.images[0]?.url || fallbackImage), 600, 400)}
                       alt={mess.name}
                       className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                     />
@@ -348,9 +350,9 @@ export const Home = () => {
               className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
             >
               <div>
-                <div className="relative aspect-video bg-zinc-950 border-b border-[#2A2A3D] overflow-hidden">
-                  <img
-                    src={shop.images[0]?.url || 'https://picsum.photos/600/400'}
+                <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
+                  <LazyImage
+                    src={getOptimizedImageUrl(shop.images[0]?.url || 'https://picsum.photos/600/400', 600, 400)}
                     alt={shop.name}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                   />
@@ -396,6 +398,7 @@ export const Home = () => {
                       <img
                         src={studentAvatarUrl}
                         alt={rev.author?.name}
+                        loading="lazy"
                         className="w-12 h-12 rounded-xl object-cover border border-[#2A2A3D] bg-slate-900 shadow-[2px_2px_0px_#000000]"
                       />
                       <div>

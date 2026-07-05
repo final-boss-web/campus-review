@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -14,17 +14,18 @@ import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 
 // Pages
-import Home from './pages/Home.jsx';
-import Search from './pages/Search.jsx';
-import PlaceDetail from './pages/PlaceDetail.jsx';
-import ScamAlerts from './pages/ScamAlerts.jsx';
-import Profile from './pages/Profile.jsx';
-import AdminDashboard from './pages/AdminDashboard.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import VerifyRegistration from './pages/VerifyRegistration.jsx';
-import ForgotPassword from './pages/ForgotPassword.jsx';
-import Contact from './pages/Contact.jsx';
+// Pages loaded dynamically to optimize initial bundle size
+const Home = lazy(() => import('./pages/Home.jsx'));
+const Search = lazy(() => import('./pages/Search.jsx'));
+const PlaceDetail = lazy(() => import('./pages/PlaceDetail.jsx'));
+const ScamAlerts = lazy(() => import('./pages/ScamAlerts.jsx'));
+const Profile = lazy(() => import('./pages/Profile.jsx'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Register = lazy(() => import('./pages/Register.jsx'));
+const VerifyRegistration = lazy(() => import('./pages/VerifyRegistration.jsx'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
+const Contact = lazy(() => import('./pages/Contact.jsx'));
 import { useActivityTracker } from './hooks/useActivityTracker.js';
 
 const queryClient = new QueryClient();
@@ -89,19 +90,28 @@ const MainAppContent = () => {
 
           <Navbar />
           <main className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-0">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/place/:type/:id" element={<PlaceDetail />} />
-              <Route path="/scams" element={<ScamAlerts />} />
-              <Route path="/profile/:id" element={<Profile />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/verify-registration" element={<VerifyRegistration />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-            </Routes>
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-[50vh] text-[#38BDF8]">
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="w-10 h-10 border-4 border-[#38BDF8] border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-[10px] tracking-widest uppercase font-black animate-pulse">Loading Page...</span>
+                </div>
+              </div>
+            }>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/place/:type/:id" element={<PlaceDetail />} />
+                <Route path="/scams" element={<ScamAlerts />} />
+                <Route path="/profile/:id" element={<Profile />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/verify-registration" element={<VerifyRegistration />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+              </Routes>
+            </Suspense>
           </main>
         </div>
         <Footer />

@@ -24,6 +24,8 @@ import {
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
 import ImageUpload from '../components/ImageUpload.jsx';
+import LazyImage from '../components/LazyImage.jsx';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer.js';
 
 export const PlaceDetail = () => {
   const { type, id } = useParams();
@@ -626,7 +628,7 @@ export const PlaceDetail = () => {
             <ImageUpload
               images={editPlaceData.images || []}
               onChange={(newImgs) => setEditPlaceData({ ...editPlaceData, images: newImgs })}
-              maxFiles={10}
+              maxFiles={15}
               label="Add or Remove Photos"
             />
           </div>
@@ -691,7 +693,7 @@ export const PlaceDetail = () => {
                 <ImageUpload
                   images={newUploadedPhotos}
                   onChange={(newImgs) => setNewUploadedPhotos(newImgs)}
-                  maxFiles={5}
+                  maxFiles={15}
                   label="Select photos to upload to this gallery (Multiple supported)"
                 />
                 <button
@@ -717,8 +719,8 @@ export const PlaceDetail = () => {
                       rel="noreferrer"
                       className="w-full h-full block"
                     >
-                      <img
-                        src={img.url}
+                      <LazyImage
+                        src={getOptimizedImageUrl(img, 800, 600)}
                         alt={`${place.name} media ${idx + 1}`}
                         className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                       />
@@ -851,7 +853,11 @@ export const PlaceDetail = () => {
                         rel="noreferrer"
                         className="group relative w-24 h-24 rounded-xl overflow-hidden border border-[#2A2A3D] hover:border-white transition duration-150"
                       >
-                        <img src={img.url} alt="Menu page" className="w-full h-full object-cover" />
+                        <LazyImage
+                          src={getOptimizedImageUrl(img, 300, 300)}
+                          alt="Menu page"
+                          className="w-full h-full object-cover"
+                        />
                       </a>
                     ))}
                   </div>
@@ -1018,6 +1024,7 @@ export const PlaceDetail = () => {
                       <img
                         src={studentAvatarUrl}
                         alt={rev.author?.name}
+                        loading="lazy"
                         className="w-12 h-12 rounded-xl object-cover border border-[#2A2A3D] bg-slate-900 shadow-sm"
                       />
                       <div>
@@ -1081,7 +1088,11 @@ export const PlaceDetail = () => {
                           rel="noreferrer"
                           className="w-16 h-12 rounded-lg overflow-hidden border border-[#2A2A3D]"
                         >
-                          <img src={img.url} alt="Review attachment" className="w-full h-full object-cover" />
+                          <LazyImage
+                            src={getOptimizedImageUrl(img, 200, 150)}
+                            alt="Review attachment"
+                            className="w-full h-full object-cover"
+                          />
                         </a>
                       ))}
                     </div>
@@ -1131,6 +1142,7 @@ export const PlaceDetail = () => {
                         <img
                           src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(comm.author?.name || 'student')}`}
                           alt={comm.author?.name}
+                          loading="lazy"
                           className="w-7 h-7 rounded-lg object-cover border border-[#2A2A3D] bg-slate-900 shadow-sm"
                         />
                         <div className="flex-1 bg-[#15152E] border border-[#2A2A3D] p-2.5 rounded-xl relative">

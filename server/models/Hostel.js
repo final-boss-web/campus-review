@@ -102,6 +102,7 @@ const HostelSchema = new mongoose.Schema(
     approved: {
       type: Boolean,
       default: false,
+      index: true,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

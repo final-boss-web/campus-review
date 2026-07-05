@@ -3,7 +3,7 @@ import { Upload, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import api from '../services/api.js';
 
-export const ImageUpload = ({ images, onChange, maxFiles = 5, label = 'Upload Images' }) => {
+export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload Images' }) => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 

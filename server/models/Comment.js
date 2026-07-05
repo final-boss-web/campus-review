@@ -6,11 +6,13 @@ const CommentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+      index: true,
     },
     review: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Review',
       required: true,
+      index: true,
     },
     contentText: {
       type: String,

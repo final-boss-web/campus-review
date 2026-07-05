@@ -18,6 +18,8 @@ import {
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
 import ImageUpload from '../components/ImageUpload.jsx';
+import LazyImage from '../components/LazyImage.jsx';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer.js';
 
 export const Search = () => {
   const navigate = useNavigate();
@@ -451,9 +453,9 @@ export const Search = () => {
                     className="group bg-[#15152E] border border-[#2A2A3D] rounded-2xl hover:-translate-x-1 hover:-translate-y-1 hover:border-white hover:shadow-brutal-blue transition duration-200 overflow-hidden flex flex-col justify-between"
                   >
                     <div>
-                      <div className="relative aspect-video bg-zinc-955 border-b border-[#2A2A3D] overflow-hidden">
-                        <img
-                          src={isRedSpice ? fallbackImage : (place.images[0]?.url || fallbackImage)}
+                      <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
+                        <LazyImage
+                          src={getOptimizedImageUrl(isRedSpice ? fallbackImage : (place.images[0] || fallbackImage), 600, 400)}
                           alt={place.name}
                           className="w-full h-full object-cover group-hover:scale-102 transition duration-300"
                         />
@@ -794,7 +796,7 @@ export const Search = () => {
               <ImageUpload
                 images={newPlaceData.images}
                 onChange={(imgs) => setNewPlaceData({ ...newPlaceData, images: imgs })}
-                maxFiles={5}
+                maxFiles={15}
                 label="Listing Media / Room Photos"
               />
 
