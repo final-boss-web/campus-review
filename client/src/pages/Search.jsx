@@ -50,6 +50,7 @@ export const Search = () => {
   const [newPlaceData, setNewPlaceData] = useState({
     name: '',
     address: '',
+    googleMapsUrl: '',
     phone: '',
     ownerName: '',
     roomRent: '',
@@ -63,6 +64,7 @@ export const Search = () => {
     category: 'Restaurant & Cafe',
     description: '',
     nearbyDistance: '0.5',
+    coverImage: null,
     images: [],
     menuImages: [],
     ac: false,
@@ -153,8 +155,10 @@ export const Search = () => {
         type: newPlaceType,
         name: newPlaceData.name,
         address: newPlaceData.address,
+        googleMapsUrl: newPlaceData.googleMapsUrl,
         phone: newPlaceData.phone,
         description: newPlaceData.description,
+        coverImage: newPlaceData.coverImage,
         images: newPlaceData.images,
         nearbyDistance: parseFloat(newPlaceData.nearbyDistance) || 0.5,
       };
@@ -232,7 +236,7 @@ export const Search = () => {
     <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 space-y-8 relative bg-[#0D0D1A]">
       <div className="flex justify-start">
         <Link
-          to="/"
+          to="/#categories"
           className="inline-flex items-center space-x-2 text-xs font-black text-white hover:text-[#38BDF8] transition-all duration-200 bg-[#15152E] px-4 py-2.5 rounded-xl border border-[#2A2A3D] shadow-sm hover:border-white"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -455,7 +459,7 @@ export const Search = () => {
                     <div>
                       <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
                         <LazyImage
-                          src={getOptimizedImageUrl(isRedSpice ? fallbackImage : (place.images[0] || fallbackImage), 600, 400)}
+                          src={getOptimizedImageUrl(isRedSpice ? fallbackImage : (place.coverImage || place.images[0] || fallbackImage), 600, 400)}
                           alt={place.name}
                           className="w-full h-full object-cover group-hover:scale-102 transition duration-300"
                         />
@@ -514,7 +518,7 @@ export const Search = () => {
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-2 border border-[#2A2A3D] bg-slate-900 rounded-xl hover:bg-slate-800 transition"
+                className="p-2 border border-[#2A2A3D] bg-[#0D0D1A] rounded-xl hover:bg-[#15152E] transition"
               >
                 <X className="w-5 h-5 text-white" />
               </button>
@@ -537,7 +541,7 @@ export const Search = () => {
               {/* Type Switcher */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Listing Type</label>
-                <div className="flex gap-2.5 p-1 bg-slate-900 border border-[#2A2A3D] rounded-xl max-w-sm">
+                <div className="flex gap-2.5 p-1 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl max-w-sm">
                   {['Hostel', 'Mess', 'Shop'].map((t) => (
                     <button
                       key={t}
@@ -602,11 +606,22 @@ export const Search = () => {
                     className="premium-input"
                   />
                 </div>
+                {/* Google Maps / Location URL */}
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-black text-white uppercase tracking-wider">Google Maps / Location URL</label>
+                  <input
+                    type="text"
+                    value={newPlaceData.googleMapsUrl}
+                    onChange={(e) => setNewPlaceData({ ...newPlaceData, googleMapsUrl: e.target.value })}
+                    placeholder="e.g. https://maps.app.goo.gl/..."
+                    className="premium-input"
+                  />
+                </div>
               </div>
 
               {/* Hostel specific inputs */}
               {newPlaceType === 'Hostel' && (
-                <div className="p-5 bg-slate-900 rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
+                <div className="p-5 bg-[#0D0D1A] rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
                   <h4 className="text-xs font-black text-[#38BDF8] uppercase tracking-widest">Hostel / PG Specifications</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
@@ -666,7 +681,7 @@ export const Search = () => {
 
               {/* Mess specific inputs */}
               {newPlaceType === 'Mess' && (
-                <div className="p-5 bg-slate-900 rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
+                <div className="p-5 bg-[#0D0D1A] rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
                   <h4 className="text-xs font-black text-[#38BDF8] uppercase tracking-widest">Mess / Dining Details</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
@@ -739,7 +754,7 @@ export const Search = () => {
 
               {/* Shop specific inputs */}
               {newPlaceType === 'Shop' && (
-                <div className="p-5 bg-slate-900 rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
+                <div className="p-5 bg-[#0D0D1A] rounded-xl space-y-4 border border-[#2A2A3D] shadow-sm">
                   <h4 className="text-xs font-black text-[#38BDF8] uppercase tracking-widest">Shop / Service Specifications</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
@@ -792,6 +807,14 @@ export const Search = () => {
                 />
               </div>
 
+              {/* Featured Cover Image (Single file) */}
+              <ImageUpload
+                images={newPlaceData.coverImage ? [newPlaceData.coverImage] : []}
+                onChange={(imgs) => setNewPlaceData({ ...newPlaceData, coverImage: imgs[0] || null })}
+                maxFiles={1}
+                label="Featured Cover Image (Displays on Listing Card)"
+              />
+
               {/* Multiple Image Uploads */}
               <ImageUpload
                 images={newPlaceData.images}
@@ -815,7 +838,7 @@ export const Search = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="py-3 px-6 rounded-xl font-black text-white bg-slate-900 border border-[#2A2A3D] hover:bg-slate-800 transition text-xs"
+                  className="py-3 px-6 rounded-xl font-black text-white bg-[#0D0D1A] border border-[#2A2A3D] hover:bg-[#15152E] transition text-xs"
                 >
                   Cancel
                 </button>

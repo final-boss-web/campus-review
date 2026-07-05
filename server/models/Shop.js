@@ -12,6 +12,11 @@ const ShopSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    coverImage: {
+      url: { type: String },
+      fileId: { type: String },
+      thumbnailUrl: { type: String }
+    },
     images: [
       {
         url: { type: String, required: true },
@@ -29,6 +34,10 @@ const ShopSchema = new mongoose.Schema(
     address: {
       type: String,
       required: true,
+    },
+    googleMapsUrl: {
+      type: String,
+      default: '',
     },
     phone: {
       type: String,

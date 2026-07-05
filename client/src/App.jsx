@@ -30,13 +30,22 @@ import { useActivityTracker } from './hooks/useActivityTracker.js';
 
 const queryClient = new QueryClient();
 
-// Helper component to force window scroll to top on every route change
+// Helper component to force window scroll to top on every route change, or scroll to specific anchor hash if provided
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    if (location.hash) {
+      setTimeout(() => {
+        const element = document.getElementById(location.hash.slice(1));
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname, location.hash]);
 
   return null;
 };

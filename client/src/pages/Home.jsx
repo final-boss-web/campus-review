@@ -161,7 +161,7 @@ export const Home = () => {
       </header>
 
       {/* 2. Categories Section */}
-      <section className="max-w-7xl mx-auto px-6 space-y-6">
+      <section id="categories" className="max-w-7xl mx-auto px-6 space-y-6">
         <h2 className="text-3xl font-black tracking-tight text-white uppercase">Explore Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {categories.map((cat) => {
@@ -237,7 +237,7 @@ export const Home = () => {
               <div>
                 <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
                   <LazyImage
-                    src={getOptimizedImageUrl(hostel.images[0], 600, 400)}
+                    src={getOptimizedImageUrl(hostel.coverImage || hostel.images[0], 600, 400)}
                     alt={hostel.name}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                   />
@@ -296,7 +296,7 @@ export const Home = () => {
                 <div>
                   <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
                     <LazyImage
-                      src={getOptimizedImageUrl(isRedSpice ? fallbackImage : (mess.images[0]?.url || fallbackImage), 600, 400)}
+                      src={getOptimizedImageUrl(isRedSpice ? fallbackImage : (mess.coverImage || mess.images[0] || fallbackImage), 600, 400)}
                       alt={mess.name}
                       className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                     />
@@ -352,7 +352,7 @@ export const Home = () => {
               <div>
                 <div className="relative aspect-video border-b border-[#2A2A3D] overflow-hidden">
                   <LazyImage
-                    src={getOptimizedImageUrl(shop.images[0]?.url || 'https://picsum.photos/600/400', 600, 400)}
+                    src={getOptimizedImageUrl(shop.coverImage || shop.images[0] || 'https://picsum.photos/600/400', 600, 400)}
                     alt={shop.name}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                   />

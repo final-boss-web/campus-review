@@ -78,25 +78,19 @@ export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload I
       const uploadedImages = [];
 
       for (const file of files) {
-        // Validate Size (Max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          setError(`File ${file.name} is too large. Max size is 5MB.`);
-          continue;
-        }
-
         // Validate File Type
         if (!file.type.startsWith('image/')) {
           setError(`File ${file.name} is not an image.`);
           continue;
         }
 
-        // Compress the image before uploading to reduce network load
-        let fileToUpload = file;
-        try {
-          fileToUpload = await compressImage(file, 1200, 1200, 0.75);
-        } catch (compressErr) {
-          console.warn('Image compression failed, uploading original:', compressErr);
+        // Validate Original Size limit (Max 5MB for actual uploads)
+        if (file.size > 5 * 1024 * 1024) {
+          setError(`File ${file.name} is too large. Max size allowed is 5MB.`);
+          continue;
         }
+
+        let fileToUpload = file;
 
         // 1. Get upload auth parameters from the unified auth endpoint
         let signatureData;
@@ -111,33 +105,23 @@ export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload I
 
         const provider = signatureData?.provider || 'imagekit';
         
-        let isPlaceholder = false;
-        if (provider === 'imagekit') {
-          const pubKey = signatureData?.publicKey || '';
-          isPlaceholder = 
-            pubKey === 'mock_public_key' || 
-            pubKey === 'your_imagekit_public_key' || 
-            pubKey.startsWith('your_') || 
-            !pubKey;
-        } else {
-          const apiKey = signatureData?.apiKey || '';
-          isPlaceholder = 
-            apiKey === 'mock_api_key' || 
-            apiKey === 'your_cloudinary_api_key' || 
-            apiKey.startsWith('your_') || 
-            !apiKey || 
-            signatureData.isMock;
-        }
-
-        if (isMock || !signatureData || isPlaceholder) {
-          // Simulator fallback
+        if (isMock || !signatureData) {
+          // Simulator fallback if backend endpoint is unavailable
           await new Promise((resolve) => setTimeout(resolve, 800)); // simulate network delay
           const mockId = 'mock_' + (provider === 'cloudinary' ? 'cl_' : 'ik_') + Math.floor(Math.random() * 1000000);
           
+          // Re-compress aggressively for local base64 storage to avoid DB bloating and lag
+          let lowResFile = fileToUpload;
+          try {
+            lowResFile = await compressImage(fileToUpload, 400, 400, 0.4);
+          } catch (e) {
+            console.warn('Low-res compression skipped:', e);
+          }
+
           const base64Data = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(fileToUpload);
+            reader.readAsDataURL(lowResFile);
           });
 
           uploadedImages.push({
@@ -201,7 +185,9 @@ export const ImageUpload = ({ images, onChange, maxFiles = 15, label = 'Upload I
       onChange([...images, ...uploadedImages]);
     } catch (err) {
       console.error('Upload error:', err);
-      setError('Failed to upload some images. Please try again.');
+      const serverMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : '');
+      const errMsg = serverMsg || err.message || 'Unknown network error';
+      setError(`Upload Failed: ${errMsg}. Please verify that your IMAGEKIT keys in the server's .env are correct.`);
     } finally {
       setUploading(false);
     }

@@ -12,6 +12,11 @@ const HostelSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    coverImage: {
+      url: { type: String },
+      fileId: { type: String },
+      thumbnailUrl: { type: String }
+    },
     images: [
       {
         url: { type: String, required: true },

@@ -30,6 +30,30 @@ import ImageUpload from '../components/ImageUpload.jsx';
 import LazyImage from '../components/LazyImage.jsx';
 import { getOptimizedImageUrl } from '../utils/imageOptimizer.js';
 
+// Helper to parse description string by emoji indicators or newlines and render as a styled single-box bullet list
+const formatDescription = (desc) => {
+  if (!desc) return <p className="italic text-slate-450 text-xs">No detailed description available.</p>;
+
+  // Safe split by emojis without breaking unicode surrogate pairs (prevents question mark diamonds)
+  let formatted = desc;
+  const emojis = ['🏠', '📍', '💰', '🌟', '👤'];
+  emojis.forEach(emoji => {
+    formatted = formatted.split(emoji).join('\n' + emoji);
+  });
+  const lines = formatted.split('\n').map(l => l.trim()).filter(Boolean);
+
+  return (
+    <div className="p-5 bg-[#0D0D1A]/60 border border-[#2A2A3D] rounded-xl space-y-3.5">
+      {lines.map((line, idx) => (
+        <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300 leading-relaxed font-semibold">
+          <span className="text-[#38BDF8] text-base leading-none select-none">•</span>
+          <span className="flex-1 whitespace-pre-line break-words">{line}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const PlaceDetail = () => {
   const { type, id } = useParams();
   const navigate = useNavigate();
@@ -353,7 +377,7 @@ export const PlaceDetail = () => {
     <div className="max-w-6xl mx-auto px-6 py-8 sm:px-8 space-y-8 pb-20 relative bg-[#0D0D1A]">
       <div className="flex justify-between items-center">
         <Link
-          to="/"
+          to="/#categories"
           className="inline-flex items-center space-x-2 text-xs font-black text-white hover:text-[#38BDF8] transition-all duration-200 bg-[#15152E] px-4 py-2.5 rounded-xl border border-[#2A2A3D] shadow-sm hover:border-white"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -377,6 +401,8 @@ export const PlaceDetail = () => {
                   dailyCharges: place.dailyCharges || 0,
                   foodTiming: place.foodTiming || '',
                   category: place.category || 'Restaurant & Cafe',
+                  googleMapsUrl: place.googleMapsUrl || '',
+                  coverImage: place.coverImage || null,
                   images: place.images || [],
                   menuImages: place.menuImages || [],
                 });
@@ -437,6 +463,16 @@ export const PlaceDetail = () => {
                 value={editPlaceData.nearbyDistance}
                 onChange={(e) => setEditPlaceData({ ...editPlaceData, nearbyDistance: parseFloat(e.target.value) || 0 })}
                 className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+              />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Google Maps / Location URL</label>
+              <input
+                type="text"
+                value={editPlaceData.googleMapsUrl}
+                onChange={(e) => setEditPlaceData({ ...editPlaceData, googleMapsUrl: e.target.value })}
+                className="w-full bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#38BDF8] transition"
+                placeholder="e.g. https://maps.app.goo.gl/..."
               />
             </div>
           </div>
@@ -645,14 +681,25 @@ export const PlaceDetail = () => {
           )}
 
           {/* Manage Images in Edit Mode */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Manage Listing Photos</label>
-            <ImageUpload
-              images={editPlaceData.images || []}
-              onChange={(newImgs) => setEditPlaceData({ ...editPlaceData, images: newImgs })}
-              maxFiles={15}
-              label="Add or Remove Photos"
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Featured Cover Image</label>
+              <ImageUpload
+                images={editPlaceData.coverImage ? [editPlaceData.coverImage] : []}
+                onChange={(newImgs) => setEditPlaceData({ ...editPlaceData, coverImage: newImgs[0] || null })}
+                maxFiles={1}
+                label="Edit Cover Image (Single file)"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[#38BDF8] uppercase tracking-wider">Manage Listing Photos</label>
+              <ImageUpload
+                images={editPlaceData.images || []}
+                onChange={(newImgs) => setEditPlaceData({ ...editPlaceData, images: newImgs })}
+                maxFiles={15}
+                label="Add or Remove Photos"
+              />
+            </div>
           </div>
 
           <button
@@ -664,6 +711,17 @@ export const PlaceDetail = () => {
         </form>
       ) : (
         <>
+          {/* Featured Cover Image Banner */}
+          {place.coverImage?.url && (
+            <div className="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden border border-[#2A2A3D] shadow-sm hover:border-white transition duration-200">
+              <LazyImage
+                src={getOptimizedImageUrl(place.coverImage, 1200, 600)}
+                alt={`${place.name} cover`}
+                className="w-full h-full object-cover animate-fade-in"
+              />
+            </div>
+          )}
+
           {/* 1. Header Card */}
           <div className="bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between gap-6 relative overflow-hidden transition duration-200 hover:border-white hover:shadow-brutal-blue">
             <div className="space-y-4 font-black">
@@ -768,9 +826,7 @@ export const PlaceDetail = () => {
             <div className="lg:col-span-2 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-6 transition duration-200 hover:border-white hover:shadow-brutal-blue">
               <h3 className="text-xl font-black text-white uppercase tracking-tight">Details & Amenities</h3>
               
-              <p className="text-xs sm:text-sm text-slate-355 leading-relaxed font-semibold">
-                {place.description || 'No detailed description available for this listing.'}
-              </p>
+              {formatDescription(place.description)}
 
               {/* Pricing cards */}
               <div className="grid grid-cols-2 gap-4">
@@ -820,10 +876,14 @@ export const PlaceDetail = () => {
                       className={`flex items-center space-x-2 text-xs p-3.5 rounded-xl border transition duration-150 font-black ${
                         item.val
                           ? 'border-[#38BDF8] bg-[#38BDF8]/5 text-[#38BDF8]'
-                          : 'border-[#2A2A3D] bg-[#0D0D1A] text-slate-550'
+                          : 'border-[#EF4444]/30 bg-[#EF4444]/5 text-[#EF4444]'
                       }`}
                     >
-                      <Check className={`w-4 h-4 flex-shrink-0 ${item.val ? 'text-[#38BDF8]' : 'text-slate-500'}`} />
+                      {item.val ? (
+                        <Check className="w-4 h-4 flex-shrink-0 text-[#38BDF8]" />
+                      ) : (
+                        <X className="w-4 h-4 flex-shrink-0 text-[#EF4444]" />
+                      )}
                       <span>{item.name} {item.emoji}</span>
                     </div>
                   ))}
@@ -888,19 +948,54 @@ export const PlaceDetail = () => {
             </div>
 
             {/* Sidebar details */}
-            <div className="lg:col-span-1 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-4 h-fit">
-              <h4 className="font-black text-sm tracking-tight text-white uppercase">Location Map</h4>
-              <a
-                href={place.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(place.address)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="block relative rounded-2xl overflow-hidden aspect-video bg-zinc-950 border border-[#2A2A3D] hover:border-white transition duration-150"
-              >
-                <div className="absolute inset-0 bg-[#38BDF8]/5 flex flex-col items-center justify-center p-4 text-center">
-                  <MapPin className="w-8 h-8 text-[#38BDF8] animate-bounce" />
-                  <span className="text-xs font-black text-white mt-2 uppercase tracking-wider bg-black border border-[#2A2A3D] px-2 py-0.5 rounded">Directions</span>
+            <div className="lg:col-span-1 bg-[#15152E] border border-[#2A2A3D] rounded-2xl p-6 space-y-4 h-fit transition duration-200 hover:border-white hover:shadow-brutal-blue">
+              <h4 className="font-black text-sm tracking-tight text-white uppercase flex items-center gap-2">
+                <Compass className="w-4 h-4 text-[#38BDF8] animate-pulse" />
+                <span>Location Directions</span>
+              </h4>
+              
+              {place.googleMapsUrl ? (
+                <div className="space-y-4 pt-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00D68F] animate-pulse"></span>
+                    <span className="text-[10px] font-black text-[#00D68F] uppercase tracking-wider">Live Link Configured</span>
+                  </div>
+                  
+                  <div className="p-3.5 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl text-xs text-slate-350 leading-relaxed font-bold">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Target Address</span>
+                    {place.address}
+                  </div>
+                  
+                  <a
+                    href={place.googleMapsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-full py-3 text-center rounded-xl font-black text-xs text-black bg-[#38BDF8] border border-[#38BDF8] hover:bg-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-blue transition duration-150 cursor-pointer"
+                  >
+                    🚀 OPEN MAPS DIRECTIONS
+                  </a>
                 </div>
-              </a>
+              ) : (
+                <div className="space-y-4 pt-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] animate-pulse"></span>
+                    <span className="text-[10px] font-black text-[#EF4444] uppercase tracking-wider">No Link Provided</span>
+                  </div>
+                  
+                  <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl text-xs text-slate-400 font-bold leading-normal text-center">
+                    📌 No active map directions URL configured for this listing.
+                  </div>
+                  
+                  {user?.role === 'admin' && (
+                    <button
+                      onClick={() => setIsEditMode(true)}
+                      className="w-full py-3 text-center rounded-xl font-black text-xs text-white bg-[#0D0D1A] border border-[#2A2A3D] hover:bg-[#15152E] transition"
+                    >
+                      ✏️ Add Map Link
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -1012,7 +1107,7 @@ export const PlaceDetail = () => {
               <button
                 type="button"
                 onClick={() => setShowReviewForm(false)}
-                className="py-3 px-5 bg-slate-900 border border-[#2A2A3D] rounded-xl text-xs font-black text-white hover:bg-slate-800 transition"
+                className="py-3 px-5 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl text-xs font-black text-white hover:bg-[#15152E] transition"
               >
                 Cancel
               </button>
@@ -1047,7 +1142,7 @@ export const PlaceDetail = () => {
                         src={studentAvatarUrl}
                         alt={rev.author?.name}
                         loading="lazy"
-                        className="w-12 h-12 rounded-xl object-cover border border-[#2A2A3D] bg-slate-900 shadow-sm"
+                        className="w-12 h-12 rounded-xl object-cover border border-[#2A2A3D] bg-[#0D0D1A] shadow-sm"
                       />
                       <div>
                         <div className="flex items-center space-x-1.5">
@@ -1069,7 +1164,7 @@ export const PlaceDetail = () => {
                       {(rev.author?._id === user?.id || user?.role === 'admin') && (
                         <button
                           onClick={() => handleDeleteReview(rev._id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#EF4444] hover:bg-slate-900 border border-transparent hover:border-white transition"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#EF4444] hover:bg-[#0D0D1A] border border-transparent hover:border-white transition"
                           title="Delete Review"
                         >
                           <Trash2 className="w-4.5 h-4.5" />
@@ -1169,7 +1264,7 @@ export const PlaceDetail = () => {
                           src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(comm.author?.name || 'student')}`}
                           alt={comm.author?.name}
                           loading="lazy"
-                          className="w-7 h-7 rounded-lg object-cover border border-[#2A2A3D] bg-slate-900 shadow-sm"
+                          className="w-7 h-7 rounded-lg object-cover border border-[#2A2A3D] bg-[#0D0D1A] shadow-sm"
                         />
                         <div className="flex-1 bg-[#15152E] border border-[#2A2A3D] p-2.5 rounded-xl relative">
                           <div className="flex items-center justify-between mb-1">
