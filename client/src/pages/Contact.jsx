@@ -80,7 +80,7 @@ export const Contact = () => {
       const userStr = user ? `${user.name} (${user.email})` : `${senderName} (${senderEmail})`;
 
       msgText += `==============================================\n`;
-      msgText += `          CAMPUS REVIEW - SUPPORT TICKET      \n`;
+      msgText += `          REVIEW WALLAH - SUPPORT TICKET      \n`;
       msgText += `==============================================\n`;
       msgText += `Date      : ${dateStr}\n`;
       msgText += `Sender    : ${userStr}\n`;
@@ -116,7 +116,7 @@ export const Contact = () => {
       }
 
       msgText += `\n==============================================\n`;
-      msgText += `Generated automatically via Campus Review Hub.`;
+      msgText += `Generated automatically via Review Wallah Hub.`;
 
       const payload = {
         senderName,

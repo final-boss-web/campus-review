@@ -103,16 +103,16 @@ const createTransporter = () => {
 
 export const sendOTPEmail = async (email, otp) => {
   const transporter = createTransporter();
-  const from = process.env.EMAIL_FROM || '"Campus Review Hub" <no-reply@campus.edu>';
+  const from = process.env.EMAIL_FROM || '"Review Wallah" <no-reply@campus.edu>';
 
   const mailOptions = {
     from: from,
     to: email,
-    subject: 'Campus Review Hub - Password Reset Verification Code',
+    subject: 'Review Wallah - Password Reset Verification Code',
     text: `Your password reset OTP is ${otp}. It is valid for 15 minutes.`,
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px; margin: auto;">
-        <h2 style="color: #4d70ff; text-align: center;">Campus Review Hub</h2>
+        <h2 style="color: #4d70ff; text-align: center;">Review Wallah</h2>
         <hr style="border: 0; border-top: 1px solid #eee;" />
         <p>Dear Student,</p>
         <p>You requested a password reset. Please use the following One-Time Password (OTP) to reset your password. This OTP is valid for <strong>15 minutes</strong>.</p>
@@ -150,7 +150,7 @@ export const sendOTPEmail = async (email, otp) => {
 
 export const sendSupportTicketEmail = async (ticket) => {
   const transporter = createTransporter();
-  const from = process.env.EMAIL_FROM || '"Campus Review Hub" <no-reply@campus.edu>';
+  const from = process.env.EMAIL_FROM || '"Review Wallah" <no-reply@campus.edu>';
   const adminEmail = process.env.ADMIN_EMAIL; // Recipient admin email address requested by user
   const adminEmail1 = process.env.ADMIN_EMAIL1; // Additional admin email address
   let detailsHtml = '';
@@ -233,7 +233,7 @@ export const sendSupportTicketEmail = async (ticket) => {
         
         <!-- Header -->
         <div style="background-color: #15152e; padding: 25px; text-align: center; border-bottom: 2px solid #2a2a3d;">
-          <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 0.5px;">CAMPUS REVIEW HUB</h2>
+          <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 0.5px;">REVIEW WALLAH HUB</h2>
           <span style="display: inline-block; margin-top: 8px; font-size: 10px; font-weight: bold; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;">Admin Support Portal</span>
         </div>
 
@@ -278,7 +278,7 @@ export const sendSupportTicketEmail = async (ticket) => {
 
         <!-- Footer -->
         <div style="background-color: #f9fafb; border-top: 1px solid #f3f4f6; padding: 20px; text-align: center;">
-          <p style="margin: 0; font-size: 11px; color: #9ca3af; font-weight: 600;">This is an automated support notification from your Campus Review Hub server.</p>
+          <p style="margin: 0; font-size: 11px; color: #9ca3af; font-weight: 600;">This is an automated support notification from your Review Wallah server.</p>
           <p style="margin: 8px 0 0 0; font-size: 11px;"><a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/admin" style="color: #4f46e5; text-decoration: none; font-weight: bold;">Go to Admin Control Panel &rarr;</a></p>
         </div>
 
@@ -290,7 +290,7 @@ export const sendSupportTicketEmail = async (ticket) => {
     from: from,
     to: adminEmail,
     bcc: adminEmail1,
-    subject: `[Campus Review Support] ${ticket.subject}`,
+    subject: `[Review Wallah Support] ${ticket.subject}`,
     text: ticket.messageText,
     html: htmlBody,
   };

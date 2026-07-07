@@ -109,10 +109,10 @@ export const Navbar = () => {
         <div className="flex-1 flex justify-start items-center">
           <Link to="/" className="flex items-center space-x-2.5 group">
             <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00D68F] to-[#38BDF8] text-black font-extrabold text-xl border border-[#2A2A3D] shadow-[2px_2px_0px_#000000] hover:scale-105 hover:rotate-3 transition duration-200">
-              C
+              R
             </span>
             <span className="font-bold text-xl tracking-tight hidden sm:block text-white">
-              Campus<span className="gradient-text-neon font-black">Review</span>
+              Review <span className="gradient-text-neon font-black">Wallah</span>
             </span>
           </Link>
         </div>

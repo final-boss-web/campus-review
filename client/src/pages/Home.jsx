@@ -115,7 +115,7 @@ export const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/20 via-[#0D0D1A] to-sky-950/20"></div>
         <div className="relative max-w-5xl mx-auto px-6 text-center space-y-8">
           <div className="inline-flex items-center space-x-2 px-4.5 py-2 rounded-xl text-xs font-black bg-[#15152E] text-[#38BDF8] border border-[#2A2A3D]">
-            <span>🎓</span> <span className="tracking-wider">CAMPUS REVIEW HUB</span>
+            <span>🎓</span> <span className="tracking-wider">REVIEW WALLAH HUB</span>
           </div>
 
           <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-tight text-white uppercase">

@@ -22,14 +22,14 @@ export const Footer = () => {
           <div className="md:col-span-1 space-y-5">
             <Link to="/" className="flex items-center space-x-2.5 group">
               <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-[#00D68F] to-[#38BDF8] text-black font-extrabold text-lg border border-[#2A2A3D] shadow-[2px_2px_0px_#000000]">
-                C
+                R
               </span>
-              <span className="font-extrabold text-lg tracking-tight">
-                Campus<span className="gradient-text-neon font-black">Review</span>
+              <span className="font-bold text-xl tracking-tight">
+                Review <span className="gradient-text-neon font-black">Wallah</span>
               </span>
             </Link>
             <p className="text-xs text-slate-350 leading-relaxed font-semibold">
-              Campus Review Hub is a community-driven application helping college students discover the best local hostels, messes, and shops, while reporting rental scams and bad services.
+              Review Wallah is a community-driven application helping college students discover the best local hostels, messes, and shops, while reporting rental scams and bad services.
             </p>
             <div className="flex items-center space-x-2 text-xs text-slate-300 font-bold">
               <ShieldCheck className="w-4 h-4 text-[#00D68F]" />
@@ -91,7 +91,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-12 pt-8 border-t border-[#2A2A3D] text-center text-xs text-slate-400 font-semibold">
-          <p>© {new Date().getFullYear()} Campus Review Hub. Built with ❤️ for college students.</p>
+          <p>© {new Date().getFullYear()} Review Wallah. Built with ❤️ for college students.</p>
         </div>
       </div>
     </footer>
