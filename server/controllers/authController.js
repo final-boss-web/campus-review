@@ -76,7 +76,19 @@ export const googleLogin = async (req, res, next) => {
         logger.info(`Linked existing user email ${email} with Google ID: ${googleId}`);
       } else {
         // Auto-assign admin role to configured emails
-        const adminEmails = (process.env.ADMIN_EMAILS || 'admin@campus.edu').split(',').map((e) => e.trim().toLowerCase());
+        const adminEmails = [];
+        if (process.env.ADMIN_EMAILS) {
+          process.env.ADMIN_EMAILS.split(',').forEach((e) => adminEmails.push(e.trim().toLowerCase()));
+        }
+        if (process.env.ADMIN_EMAIL) {
+          adminEmails.push(process.env.ADMIN_EMAIL.trim().toLowerCase());
+        }
+        if (process.env.ADMIN_EMAIL1) {
+          adminEmails.push(process.env.ADMIN_EMAIL1.trim().toLowerCase());
+        }
+        if (adminEmails.length === 0) {
+          adminEmails.push('admin@campus.edu');
+        }
         const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
 
         user = await User.create({
@@ -207,7 +219,19 @@ export const register = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const adminEmails = (process.env.ADMIN_EMAILS || 'admin@campus.edu').split(',').map((e) => e.trim().toLowerCase());
+    const adminEmails = [];
+    if (process.env.ADMIN_EMAILS) {
+      process.env.ADMIN_EMAILS.split(',').forEach((e) => adminEmails.push(e.trim().toLowerCase()));
+    }
+    if (process.env.ADMIN_EMAIL) {
+      adminEmails.push(process.env.ADMIN_EMAIL.trim().toLowerCase());
+    }
+    if (process.env.ADMIN_EMAIL1) {
+      adminEmails.push(process.env.ADMIN_EMAIL1.trim().toLowerCase());
+    }
+    if (adminEmails.length === 0) {
+      adminEmails.push('admin@campus.edu');
+    }
     const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
