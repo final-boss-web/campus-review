@@ -188,6 +188,23 @@ export const requestLogger = (req, res, next) => {
 
     // Resolve User details
     let userId = req.user?._id || decoded?.id || null;
+
+    if (!userId && responseData) {
+      if (responseData.user) {
+        userId = responseData.user.id || responseData.user._id || null;
+      }
+      if (!userId && responseData.token) {
+        try {
+          const respDecoded = jwt.decode(responseData.token);
+          if (respDecoded?.id) {
+            userId = respDecoded.id;
+          }
+        } catch (err) {
+          // Ignore decoding errors
+        }
+      }
+    }
+
     let username = '';
     let fullName = '';
     let email = '';

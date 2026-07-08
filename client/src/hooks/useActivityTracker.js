@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import api from '../services/api.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -78,7 +79,7 @@ export const useActivityTracker = () => {
 
       // Post activity log to MongoDB
       try {
-        await axios.post(`${API_BASE_URL}/analytics/log`, {
+        await api.post('/analytics/log', {
           action: 'Page View',
           sessionId,
           currentPage,
@@ -125,7 +126,7 @@ export const useActivityTracker = () => {
       // Server Log
       try {
         const sessionId = sessionStorage.getItem('analytics_session_id');
-        await axios.post(`${API_BASE_URL}/analytics/log`, {
+        await api.post('/analytics/log', {
           action: 'JavaScript Error',
           sessionId,
           currentPage: location.pathname,
@@ -142,7 +143,7 @@ export const useActivityTracker = () => {
       // Server Log
       try {
         const sessionId = sessionStorage.getItem('analytics_session_id');
-        await axios.post(`${API_BASE_URL}/analytics/log`, {
+        await api.post('/analytics/log', {
           action: 'JavaScript Error',
           sessionId,
           currentPage: location.pathname,
