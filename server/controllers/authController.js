@@ -41,14 +41,14 @@ export const googleLogin = async (req, res, next) => {
           const decodedMock = JSON.parse(Buffer.from(base64Str, 'base64').toString('utf-8'));
           payload = {
             sub: decodedMock.sub || 'mock_sub_' + Math.floor(Math.random() * 1000000),
-            email: decodedMock.email || 'guest@campus.edu',
+            email: decodedMock.email || 'guest@reviewwallah.me',
             name: decodedMock.name || 'Mock Student',
             picture: decodedMock.picture || 'https://picsum.photos/150',
           };
         } catch (e) {
           payload = {
             sub: 'mock_sub_default_user',
-            email: 'default_student@campus.edu',
+            email: 'default_student@reviewwallah.me',
             name: 'Demo Student User',
             picture: 'https://picsum.photos/150',
           };
@@ -87,7 +87,7 @@ export const googleLogin = async (req, res, next) => {
           adminEmails.push(process.env.ADMIN_EMAIL1.trim().toLowerCase());
         }
         if (adminEmails.length === 0) {
-          adminEmails.push('admin@campus.edu');
+          adminEmails.push('admin@reviewwallah.me');
         }
         const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
 
@@ -230,7 +230,7 @@ export const register = async (req, res, next) => {
       adminEmails.push(process.env.ADMIN_EMAIL1.trim().toLowerCase());
     }
     if (adminEmails.length === 0) {
-      adminEmails.push('admin@campus.edu');
+      adminEmails.push('admin@reviewwallah.me');
     }
     const role = adminEmails.includes(email.toLowerCase()) ? 'admin' : 'student';
 

@@ -5,7 +5,7 @@ const SupportTicketSchema = new mongoose.Schema(
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: false, // optional if user is guest/not logged in
+      required: false, 
     },
     senderName: {
       type: String,

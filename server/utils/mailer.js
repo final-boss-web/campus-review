@@ -103,7 +103,7 @@ const createTransporter = () => {
 
 export const sendOTPEmail = async (email, otp) => {
   const transporter = createTransporter();
-  const from = process.env.EMAIL_FROM || '"Review Wallah" <no-reply@campus.edu>';
+  const from = process.env.EMAIL_FROM || '"Review Wallah" <no-reply@reviewwallah.me>';
 
   const mailOptions = {
     from: from,
@@ -150,7 +150,7 @@ export const sendOTPEmail = async (email, otp) => {
 
 export const sendSupportTicketEmail = async (ticket) => {
   const transporter = createTransporter();
-  const from = process.env.EMAIL_FROM || '"Review Wallah" <no-reply@campus.edu>';
+  const from = process.env.EMAIL_FROM || '"Review Wallah" <no-reply@reviewwallah.me>';
   const adminEmail = process.env.ADMIN_EMAIL; // Recipient admin email address requested by user
   const adminEmail1 = process.env.ADMIN_EMAIL1; // Additional admin email address
   let detailsHtml = '';

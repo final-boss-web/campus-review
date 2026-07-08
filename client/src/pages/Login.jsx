@@ -125,7 +125,7 @@ export const Login = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. priya@campus.edu"
+                placeholder="e.g. priya@reviewwallah.me"
                 className={inputClass}
               />
             </div>
