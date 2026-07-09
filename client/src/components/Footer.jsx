@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, MapPin, ShieldCheck, HelpCircle, ShieldAlert, Mail } from 'lucide-react';
+import logoImg from '../logo/logo.png';
+
 
 export const Footer = () => {
   const categories = [
@@ -21,10 +23,12 @@ export const Footer = () => {
           {/* Logo & Description */}
           <div className="md:col-span-1 space-y-5">
             <Link to="/" className="flex items-center space-x-2.5 group">
-              <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-[#00D68F] to-[#38BDF8] text-black font-extrabold text-lg border border-[#2A2A3D] shadow-[2px_2px_0px_#000000]">
-                R
-              </span>
-              <span className="font-bold text-xl tracking-tight">
+              <img 
+                src={logoImg} 
+                alt="Review Wallah" 
+                className="w-9 h-9 object-cover rounded-full border border-[#2A2A3D] shadow-[2px_2px_0px_#000000] hover:scale-105 transition duration-200" 
+              />
+              <span className="font-bold text-xl tracking-tight text-white">
                 Review <span className="gradient-text-neon font-black">Wallah</span>
               </span>
             </Link>

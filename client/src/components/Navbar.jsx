@@ -18,6 +18,7 @@ import { toggleTheme } from '../store/themeSlice.js';
 import { logoutUser, setUser } from '../store/authSlice.js';
 import api from '../services/api.js';
 import useSocket from '../hooks/useSocket.js';
+import logoImg from '../logo/logo.png';
 
 export const Navbar = () => {
   const dispatch = useDispatch();
@@ -108,9 +109,11 @@ export const Navbar = () => {
         {/* Logo */}
         <div className="flex-1 flex justify-start items-center">
           <Link to="/" className="flex items-center space-x-2.5 group">
-            <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00D68F] to-[#38BDF8] text-black font-extrabold text-xl border border-[#2A2A3D] shadow-[2px_2px_0px_#000000] hover:scale-105 hover:rotate-3 transition duration-200">
-              R
-            </span>
+            <img 
+              src={logoImg} 
+              alt="Review Wallah" 
+              className="w-10 h-10 object-cover rounded-full border border-[#2A2A3D] shadow-[2px_2px_0px_#000000] hover:scale-105 hover:rotate-3 transition duration-200" 
+            />
             <span className="font-bold text-xl tracking-tight hidden sm:block text-white">
               Review <span className="gradient-text-neon font-black">Wallah</span>
             </span>
