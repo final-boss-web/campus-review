@@ -105,14 +105,14 @@ export const Navbar = () => {
 
   return (
     <nav className="sticky top-4 z-40 max-w-7xl mx-auto px-4">
-      <div className="px-5 h-16 flex items-center justify-between rounded-2xl border border-[#2A2A3D] bg-[#15152E] shadow-xl shadow-black/10 transition-all duration-200">
+      <div className="px-5 h-20 flex items-center justify-between rounded-2xl border border-[#2A2A3D] bg-[#15152E] shadow-xl shadow-black/10 transition-all duration-200">
         {/* Logo */}
         <div className="flex-1 flex justify-start items-center">
           <Link to="/" className="flex items-center space-x-2.5 group">
             <img 
               src={logoImg} 
               alt="Review Wallah" 
-              className="w-10 h-10 object-cover rounded-full border border-[#2A2A3D] shadow-[2px_2px_0px_#000000] hover:scale-105 hover:rotate-3 transition duration-200" 
+              className="w-12 h-12 object-cover rounded-full border border-[#2A2A3D] shadow-[2px_2px_0px_#000000] hover:scale-105 hover:rotate-3 transition duration-200" 
             />
             <span className="font-bold text-xl tracking-tight hidden sm:block text-white">
               Review <span className="gradient-text-neon font-black">Wallah</span>
