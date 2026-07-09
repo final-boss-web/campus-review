@@ -121,7 +121,7 @@ export const Register = () => {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Priya Sharma"
+                placeholder="e.g. Full Name"
                 className={inputClass}
               />
             </div>
@@ -139,7 +139,7 @@ export const Register = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. priya@reviewwallah.me"
+                placeholder="e.g. username@gmail.com"
                 className={inputClass}
               />
             </div>

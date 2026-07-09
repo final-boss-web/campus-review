@@ -153,7 +153,7 @@ export const ForgotPassword = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. priya@reviewwallah.me"
+                  placeholder="e.g. UserName@gmail.com"
                   className={inputClass}
                 />
               </div>
