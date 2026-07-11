@@ -72,7 +72,16 @@ export const AdminDashboard = () => {
 
   // Management Lists
   const [unapprovedPlaces, setUnapprovedPlaces] = useState([]);
+  const [allListings, setAllListings] = useState([]);
+  const [listingSearchQuery, setListingSearchQuery] = useState('');
   const [allUsers, setAllUsers] = useState([]);
+
+  // Reviews Moderation States
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+  const [selectedPlaceForReviews, setSelectedPlaceForReviews] = useState(null);
+  const [placeReviews, setPlaceReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewSearchQuery, setReviewSearchQuery] = useState('');
   const [scamReports, setScamReports] = useState([]);
   const [flaggedReviews, setFlaggedReviews] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
@@ -120,12 +129,15 @@ export const AdminDashboard = () => {
         api.get('/support'),
       ]);
 
-      const combinedUnapproved = [
+      const combinedAll = [
         ...hRes.data.map((x) => ({ ...x, type: 'Hostel' })),
         ...mRes.data.map((x) => ({ ...x, type: 'Mess' })),
         ...sRes.data.map((x) => ({ ...x, type: 'Shop' })),
-      ].filter((place) => !place.approved);
+      ];
 
+      const combinedUnapproved = combinedAll.filter((place) => !place.approved);
+
+      setAllListings(combinedAll);
       setUnapprovedPlaces(combinedUnapproved);
       setAllUsers(uRes.data);
       setScamReports(scRes.data);
@@ -222,6 +234,7 @@ export const AdminDashboard = () => {
     try {
       await api.put(`/places/${type}/${id}/approve`);
       setUnapprovedPlaces(unapprovedPlaces.filter((p) => p._id !== id));
+      setAllListings(allListings.map((p) => p._id === id ? { ...p, approved: true } : p));
       alert('Listing approved and published successfully.');
     } catch (err) {
       console.error(err);
@@ -233,6 +246,7 @@ export const AdminDashboard = () => {
     try {
       await api.delete(`/places/${type}/${id}`);
       setUnapprovedPlaces(unapprovedPlaces.filter((p) => p._id !== id));
+      setAllListings(allListings.filter((p) => p._id !== id));
     } catch (err) {
       console.error(err);
     }
@@ -289,14 +303,47 @@ export const AdminDashboard = () => {
   };
 
   const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm('Are you sure you want to delete this flagged review?')) return;
+    if (!window.confirm('Are you sure you want to delete this review?')) return;
     try {
       await api.delete(`/reviews/${reviewId}`);
       setFlaggedReviews(flaggedReviews.filter((r) => r._id !== reviewId));
+      setPlaceReviews((prev) => {
+        const updated = prev.filter((r) => r._id !== reviewId);
+        if (selectedPlaceForReviews) {
+          setAllListings((prevListings) =>
+            prevListings.map((p) => {
+              if (p._id === selectedPlaceForReviews._id) {
+                const ratingsCount = updated.length;
+                const averageRating = ratingsCount > 0
+                  ? parseFloat((updated.reduce((sum, r) => sum + r.rating, 0) / ratingsCount).toFixed(1))
+                  : 0;
+                return { ...p, ratingsCount, averageRating };
+              }
+              return p;
+            })
+          );
+        }
+        return updated;
+      });
       alert('Review deleted successfully.');
     } catch (err) {
       console.error(err);
       alert('Failed to delete review.');
+    }
+  };
+
+  const handleViewPlaceReviews = async (place) => {
+    setSelectedPlaceForReviews(place);
+    setIsReviewsModalOpen(true);
+    setReviewsLoading(true);
+    setPlaceReviews([]);
+    try {
+      const { data } = await api.get(`/places/${place.type}/${place._id}`);
+      setPlaceReviews(data.reviews || []);
+    } catch (err) {
+      console.error('Failed to fetch reviews for place:', err);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -383,11 +430,30 @@ export const AdminDashboard = () => {
   }));
 
   const overviewCards = [
-    { label: 'Total Members', val: stats.cards.totalUsers, icon: Users, color: 'text-blue-500 bg-blue-500/10' },
-    { label: 'Total Reviews', val: stats.cards.totalReviews, icon: MessageSquare, color: 'text-indigo-500 bg-indigo-500/10' },
-    { label: 'Total Listings', val: stats.cards.totalHostels + stats.cards.totalShops + stats.cards.totalMesses, icon: HomeIcon, color: 'text-emerald-500 bg-emerald-500/10' },
-    { label: 'Scam Reports', val: stats.cards.totalScamReports, icon: AlertTriangle, color: 'text-red-500 bg-red-500/10' },
+    { label: 'Total Members', val: stats.cards.totalUsers, icon: Users, color: 'text-blue-500 bg-blue-500/10', targetTab: 'User Accounts' },
+    { label: 'Total Reviews', val: stats.cards.totalReviews, icon: MessageSquare, color: 'text-indigo-500 bg-indigo-500/10', targetTab: 'Moderate Reviews' },
+    { label: 'Total Listings', val: stats.cards.totalHostels + stats.cards.totalShops + stats.cards.totalMesses, icon: HomeIcon, color: 'text-emerald-500 bg-emerald-500/10', targetTab: 'All Listings' },
+    { label: 'Scam Reports', val: stats.cards.totalScamReports, icon: AlertTriangle, color: 'text-red-500 bg-red-500/10', targetTab: 'Moderate Scams' },
   ];
+
+  const filteredListings = allListings.filter((place) => {
+    const query = listingSearchQuery.toLowerCase();
+    const phoneNum = (place.phone || place.contact || '').toLowerCase();
+    return (
+      place.name.toLowerCase().includes(query) ||
+      place.type.toLowerCase().includes(query) ||
+      place.address.toLowerCase().includes(query) ||
+      phoneNum.includes(query)
+    );
+  });
+
+  const sortedListingsByName = [...allListings].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  const filteredListingsForReviews = sortedListingsByName.filter((place) =>
+    place.name.toLowerCase().includes(reviewSearchQuery.toLowerCase())
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6 pb-20">
@@ -412,7 +478,7 @@ export const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex border-b border-[#2A2A3D] gap-6 overflow-x-auto print:hidden">
-        {['Overview', 'Analytics Dashboard', 'Approve Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews', 'Support Tickets'].map((tab) => (
+        {['Overview', 'Analytics Dashboard', 'All Listings', 'Moderate Scams', 'User Accounts', 'Moderate Reviews', 'Support Tickets'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -435,7 +501,12 @@ export const AdminDashboard = () => {
             {overviewCards.map((card) => (
               <div
                 key={card.label}
-                className="bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl flex items-center justify-between shadow-sm"
+                onClick={() => card.targetTab && setActiveTab(card.targetTab)}
+                className={`bg-[#15152E] border border-[#2A2A3D] p-6 rounded-3xl flex items-center justify-between shadow-sm transition-all duration-200 ${
+                  card.targetTab
+                    ? 'cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:scale-[1.02] active:scale-[0.98]'
+                    : ''
+                }`}
               >
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-slate-400">{card.label}</span>
@@ -910,15 +981,24 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* 3. APPROVE LISTINGS TAB */}
-      {activeTab === 'Approve Listings' && (
+      {/* 3. ALL LISTINGS TAB */}
+      {activeTab === 'All Listings' && (
         <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
-          <div className="p-6 border-b border-[#2A2A3D]">
-            <h3 className="font-bold text-sm">Listing Submissions Pending Approval ({unapprovedPlaces.length})</h3>
+          <div className="p-6 border-b border-[#2A2A3D] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h3 className="font-bold text-sm">All Listings Registry ({filteredListings.length})</h3>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search name, phone, address..."
+                value={listingSearchQuery}
+                onChange={(e) => setListingSearchQuery(e.target.value)}
+                className="bg-[#0D0D1A] border border-[#2A2A3D] text-xs px-4 py-2 rounded-xl focus:outline-none w-full md:w-64 text-white"
+              />
+            </div>
           </div>
-          {unapprovedPlaces.length === 0 ? (
+          {filteredListings.length === 0 ? (
             <div className="p-12 text-center text-xs text-slate-400">
-              No listings pending verification approval.
+              No listings found matching your search.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -927,13 +1007,15 @@ export const AdminDashboard = () => {
                   <tr>
                     <th className="p-4">Name</th>
                     <th className="p-4">Type</th>
-                    <th className="p-4">Address</th>
-                    <th className="p-4">Phone</th>
+                    <th className="p-4">Mobile Number</th>
+                    <th className="p-4">Location (Address)</th>
+                    <th className="p-4">Maps Link</th>
+                    <th className="p-4">Status</th>
                     <th className="p-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {unapprovedPlaces.map((place) => (
+                  {filteredListings.map((place) => (
                     <tr key={place._id}>
                       <td className="p-4 font-bold text-white">{place.name}</td>
                       <td className="p-4">
@@ -941,20 +1023,50 @@ export const AdminDashboard = () => {
                           {place.type}
                         </span>
                       </td>
-                      <td className="p-4 truncate max-w-[200px]">{place.address}</td>
-                      <td className="p-4">{place.phone}</td>
-                      <td className="p-4 flex space-x-2">
-                        <button
-                          onClick={() => handleApproveListing(place.type, place._id)}
-                          className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 rounded"
-                          title="Approve Listing"
+                      <td className="p-4">{place.phone || place.contact || 'N/A'}</td>
+                      <td className="p-4 truncate max-w-[200px]" title={place.address}>
+                        {place.address}
+                      </td>
+                      <td className="p-4">
+                        {place.googleMapsUrl ? (
+                          <a
+                            href={place.googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:text-blue-400 hover:underline inline-flex items-center space-x-1"
+                          >
+                            <span>View Map</span>
+                            <Globe className="w-3.5 h-3.5" />
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic">No Link</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            place.approved
+                              ? 'bg-green-500/10 text-green-600'
+                              : 'bg-yellow-500/10 text-yellow-600'
+                          }`}
                         >
-                          <CheckCircle className="w-5 h-5" />
-                        </button>
+                          {place.approved ? 'Approved' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="p-4 flex space-x-2">
+                        {!place.approved && (
+                          <button
+                            onClick={() => handleApproveListing(place.type, place._id)}
+                            className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 rounded"
+                            title="Approve Listing"
+                          >
+                            <CheckCircle className="w-5 h-5" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteListing(place.type, place._id)}
                           className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded"
-                          title="Reject / Delete"
+                          title="Delete Listing"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -1139,61 +1251,124 @@ export const AdminDashboard = () => {
 
       {/* 6. MODERATE REVIEWS TAB */}
       {activeTab === 'Moderate Reviews' && (
-        <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm animate-fade-in print:hidden">
-          <div className="p-6 border-b border-[#2A2A3D]">
-            <h3 className="font-bold text-sm">Flagged Reviews Moderation ({flaggedReviews.length})</h3>
-          </div>
-          {flaggedReviews.length === 0 ? (
-            <div className="p-12 text-center text-xs text-slate-400">
-              No reviews have been flagged by the community.
+        <div className="space-y-6 animate-fade-in print:hidden">
+          {/* Flagged Reviews Section */}
+          <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-[#2A2A3D]">
+              <h3 className="font-bold text-sm">Flagged Reviews Moderation ({flaggedReviews.length})</h3>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-500">
-                <thead className="bg-slate-50 dark:bg-slate-950 font-bold uppercase tracking-wider text-[10px]">
-                  <tr>
-                    <th className="p-4">Place</th>
-                    <th className="p-4">Reviewer</th>
-                    <th className="p-4">Rating</th>
-                    <th className="p-4">Comment</th>
-                    <th className="p-4">Flags</th>
-                    <th className="p-4">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {flaggedReviews.map((rev) => (
-                    <tr key={rev._id}>
-                      <td className="p-4 font-bold text-slate-850 dark:text-slate-900">
-                        {rev.placeId?.name || 'Unknown Place'}
-                        <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[9px] uppercase font-bold">
-                          {rev.placeType}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="font-bold text-white">{rev.author?.name}</div>
-                        <div className="text-[10px] text-slate-400">{rev.author?.email}</div>
-                      </td>
-                      <td className="p-4 font-extrabold text-amber-500">{rev.rating} ★</td>
-                      <td className="p-4 max-w-xs truncate leading-relaxed" title={rev.reviewText}>
-                        {rev.reviewText}
-                      </td>
-                      <td className="p-4 font-black text-red-500">{rev.flags?.length} flags</td>
-                      <td className="p-4">
-                        <button
-                          onClick={() => handleDeleteReview(rev._id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded flex items-center gap-1 font-bold text-xs"
-                          title="Delete Fake/Flagged Review"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span>Delete</span>
-                        </button>
-                      </td>
+            {flaggedReviews.length === 0 ? (
+              <div className="p-12 text-center text-xs text-slate-400">
+                No reviews have been flagged by the community.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-500">
+                  <thead className="bg-slate-50 dark:bg-slate-950 font-bold uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="p-4">Place</th>
+                      <th className="p-4">Reviewer</th>
+                      <th className="p-4">Rating</th>
+                      <th className="p-4">Comment</th>
+                      <th className="p-4">Flags</th>
+                      <th className="p-4">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {flaggedReviews.map((rev) => (
+                      <tr key={rev._id}>
+                        <td className="p-4 font-bold text-slate-850 dark:text-slate-900">
+                          {rev.placeId?.name || 'Unknown Place'}
+                          <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[9px] uppercase font-bold">
+                            {rev.placeType}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-bold text-white">{rev.author?.name}</div>
+                          <div className="text-[10px] text-slate-400">{rev.author?.email}</div>
+                        </td>
+                        <td className="p-4 font-extrabold text-amber-500">{rev.rating} ★</td>
+                        <td className="p-4 max-w-xs truncate leading-relaxed" title={rev.reviewText}>
+                          {rev.reviewText}
+                        </td>
+                        <td className="p-4 font-black text-red-500">{rev.flags?.length} flags</td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => handleDeleteReview(rev._id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded flex items-center gap-1 font-bold text-xs"
+                            title="Delete Fake/Flagged Review"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* All Reviews by Listing (Sorted by Name) */}
+          <div className="bg-[#15152E] border border-[#2A2A3D] rounded-3xl overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-[#2A2A3D] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <h3 className="font-bold text-sm">All Reviews Listing-wise (Sorted by Name)</h3>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search listings..."
+                  value={reviewSearchQuery}
+                  onChange={(e) => setReviewSearchQuery(e.target.value)}
+                  className="bg-[#0D0D1A] border border-[#2A2A3D] text-xs px-4 py-2 rounded-xl focus:outline-none w-full md:w-64 text-white"
+                />
+              </div>
             </div>
-          )}
+            {filteredListingsForReviews.length === 0 ? (
+              <div className="p-12 text-center text-xs text-slate-400">
+                No listings found.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-500">
+                  <thead className="bg-slate-50 dark:bg-slate-950 font-bold uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="p-4">Listing Name</th>
+                      <th className="p-4">Type</th>
+                      <th className="p-4">Total Reviews</th>
+                      <th className="p-4">Average Rating</th>
+                      <th className="p-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {filteredListingsForReviews.map((place) => (
+                      <tr key={place._id}>
+                        <td className="p-4 font-bold text-white">{place.name}</td>
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]">
+                            {place.type}
+                          </span>
+                        </td>
+                        <td className="p-4 font-bold">{place.ratingsCount || 0} reviews</td>
+                        <td className="p-4 font-extrabold text-amber-500">
+                          {place.ratingsCount > 0 ? `${place.averageRating} ★` : 'N/A'}
+                        </td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => handleViewPlaceReviews(place)}
+                            className="py-1.5 px-3 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 dark:bg-indigo-500/20 dark:text-indigo-400 dark:hover:bg-indigo-500/30 rounded-lg text-[10px] font-bold transition flex items-center space-x-1"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Manage Reviews</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1646,6 +1821,110 @@ export const AdminDashboard = () => {
                 className="py-2.5 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-[#15152E] border border-[#2A2A3D] dark:hover:bg-slate-700 transition text-xs"
               >
                 Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Listing Reviews Modal */}
+      {isReviewsModalOpen && selectedPlaceForReviews && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in animate-duration-200">
+          <div className="bg-[#0D0D1A] border border-[#2A2A3D] rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-6 border-b border-[#2A2A3D] flex justify-between items-center bg-[#15152E]">
+              <div>
+                <h3 className="text-base font-black text-white">
+                  Reviews for {selectedPlaceForReviews.name}
+                </h3>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">
+                  {selectedPlaceForReviews.type} • {placeReviews.length} reviews total
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsReviewsModalOpen(false);
+                  setSelectedPlaceForReviews(null);
+                  setPlaceReviews([]);
+                }}
+                className="p-1 hover:bg-[#2A2A3D] rounded-xl text-slate-400 hover:text-white transition"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {reviewsLoading ? (
+                <div className="py-20 text-center text-xs text-slate-400 animate-pulse">
+                  Fetching reviews list from servers...
+                </div>
+              ) : placeReviews.length === 0 ? (
+                <div className="py-20 text-center text-xs text-slate-400">
+                  No reviews submitted for this listing yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {placeReviews.map((rev) => (
+                    <div
+                      key={rev._id}
+                      className="p-5 bg-[#15152E] border border-[#2A2A3D] rounded-2xl flex flex-col md:flex-row justify-between gap-4"
+                    >
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src={rev.author?.avatar || 'https://picsum.photos/150'}
+                            alt={rev.author?.name}
+                            className="w-8 h-8 rounded-full object-cover animate-fade-in"
+                          />
+                          <div>
+                            <span className="font-bold text-sm text-white block">
+                              {rev.author?.name || 'Anonymous User'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 block">
+                              {rev.author?.email} • {new Date(rev.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-amber-500 font-extrabold text-xs">{rev.rating} ★</span>
+                          {rev.flags?.length > 0 && (
+                            <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-500 font-extrabold text-[9px] uppercase">
+                              {rev.flags.length} Flags
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-300 leading-relaxed bg-[#0D0D1A] p-3 rounded-xl border border-[#2A2A3D]/40">
+                          {rev.reviewText}
+                        </p>
+                      </div>
+
+                      <div className="self-end md:self-center">
+                        <button
+                          onClick={() => handleDeleteReview(rev._id)}
+                          className="py-2 px-3.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-xs font-bold transition flex items-center space-x-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete Review</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-[#2A2A3D] bg-[#15152E] flex justify-end">
+              <button
+                onClick={() => {
+                  setIsReviewsModalOpen(false);
+                  setSelectedPlaceForReviews(null);
+                  setPlaceReviews([]);
+                }}
+                className="py-2.5 px-6 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-[#15152E] border border-[#2A2A3D] dark:hover:bg-slate-700 transition text-xs"
+              >
+                Close Reviews
               </button>
             </div>
           </div>
