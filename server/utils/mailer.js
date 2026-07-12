@@ -289,7 +289,7 @@ export const sendSupportTicketEmail = async (ticket) => {
   const mailOptions = {
     from: from,
     to: adminEmail,
-    bcc: adminEmail1,
+    cc: adminEmail1,
     subject: `[Review Wallah Support] ${ticket.subject}`,
     text: ticket.messageText,
     html: htmlBody,
