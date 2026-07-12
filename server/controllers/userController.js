@@ -9,7 +9,7 @@ import logger from '../config/logger.js';
 export const getUserProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id).select('-googleId');
+    const user = await User.findById(id).select('-password -otp -otpExpiry -isResetOtpVerified -googleId');
 
     if (!user) {
       return res.status(404).json({ message: 'User profile not found.' });
@@ -115,7 +115,7 @@ export const toggleBookmark = async (req, res, next) => {
 
 export const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find().sort({ createdAt: -1 });
+    const users = await User.find().select('-password -otp -otpExpiry -isResetOtpVerified -googleId').sort({ createdAt: -1 });
     res.status(200).json(users);
   } catch (error) {
     next(error);
@@ -125,7 +125,7 @@ export const getAllUsers = async (req, res, next) => {
 export const toggleBanUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id);
+    const user = await User.findById(id).select('-password -otp -otpExpiry -isResetOtpVerified -googleId');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
