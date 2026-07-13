@@ -24,7 +24,7 @@ const placeValidationRules = [
 router.get('/', getPlaces);
 router.get('/:type/:id', getPlaceDetail);
 
-router.post('/', protect, adminOnly, placeValidationRules, validateRequest, createPlace);
+router.post('/', protect, placeValidationRules, validateRequest, createPlace);
 router.put('/:type/:id', protect, adminOnly, updatePlace);
 router.post('/:type/:id/images', protect, addPlaceImages);
 router.delete('/:type/:id', protect, adminOnly, deletePlace);

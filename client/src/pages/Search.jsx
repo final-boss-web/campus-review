@@ -252,7 +252,7 @@ export const Search = () => {
           <h1 className="text-4xl font-black text-white uppercase tracking-tight">Discover Local Places</h1>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Search & verified student filter logs</p>
         </div>
-        {user?.role === 'admin' && (
+        {isAuthenticated && (
           <button
             onClick={handleAddButtonClick}
             className="flex items-center space-x-2 py-3 px-6 bg-[#00D68F] text-black rounded-xl border border-[#00D68F] hover:border-white font-black transition duration-200 text-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-blue active:scale-95"
