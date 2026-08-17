@@ -383,7 +383,7 @@ export const PlaceDetail = () => {
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </Link>
-        {user?.role === 'admin' && (
+        {(user?.role === 'admin' || (user?.id && (place?.createdBy?._id === user.id || place?.createdBy === user.id))) && (
           <button
             onClick={() => {
               setIsEditMode(!isEditMode);

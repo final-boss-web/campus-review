@@ -54,13 +54,26 @@ export const getUserProfile = async (req, res, next) => {
       .populate('author', 'name avatar')
       .populate('placeId');
 
+    // Fetch places submitted/listed by this user
+    const [userHostels, userMesses, userShops] = await Promise.all([
+      Hostel.find({ createdBy: id }).sort({ createdAt: -1 }),
+      Mess.find({ createdBy: id }).sort({ createdAt: -1 }),
+      Shop.find({ createdBy: id }).sort({ createdAt: -1 }),
+    ]);
+
+    const listedPlaces = [
+      ...userHostels.map(h => ({ ...h.toObject(), type: 'Hostel' })),
+      ...userMesses.map(m => ({ ...m.toObject(), type: 'Mess' })),
+      ...userShops.map(s => ({ ...s.toObject(), type: 'Shop' })),
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
     // Compile list of user's uploaded images
     const images = [];
     reviews.forEach((r) => {
-      r.images.forEach((img) => images.push({ url: img.url, srcType: 'Review', refId: r._id }));
+      r.images?.forEach((img) => images.push({ url: img.url, srcType: 'Review', refId: r._id }));
     });
     scamReports.forEach((s) => {
-      s.proofImages.forEach((img) => images.push({ url: img.url, srcType: 'ScamReport', refId: s._id }));
+      s.proofImages?.forEach((img) => images.push({ url: img.url, srcType: 'ScamReport', refId: s._id }));
     });
 
     res.status(200).json({
@@ -69,6 +82,7 @@ export const getUserProfile = async (req, res, next) => {
       scamReports,
       bookmarks: populatedBookmarks,
       likedReviews,
+      listedPlaces,
       images,
     });
   } catch (error) {

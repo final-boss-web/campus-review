@@ -13,12 +13,14 @@ import {
   AlertTriangle,
   BookOpen,
   CheckCircle,
+  Plus,
 } from 'lucide-react';
 import { toggleTheme } from '../store/themeSlice.js';
 import { logoutUser, setUser } from '../store/authSlice.js';
 import api from '../services/api.js';
 import useSocket from '../hooks/useSocket.js';
 import logoImg from '../logo/logo.png';
+import AddPlaceModal from './AddPlaceModal.jsx';
 
 export const Navbar = () => {
   const dispatch = useDispatch();
@@ -31,6 +33,7 @@ export const Navbar = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Fetch notifications initially
   useEffect(() => {
@@ -152,6 +155,17 @@ export const Navbar = () => {
               <span>Admin Panel</span>
             </Link>
           )}
+
+          <button
+            onClick={() => {
+              if (!isAuthenticated) navigate('/login');
+              else setIsAddModalOpen(true);
+            }}
+            className="px-4 py-1.5 rounded-xl text-xs font-black flex items-center space-x-1.5 text-black bg-[#00D68F] border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm transition duration-150 cursor-pointer ml-1"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>List a Place</span>
+          </button>
         </div>
 
         {/* Action Buttons (Right) */}
@@ -290,6 +304,17 @@ export const Navbar = () => {
               {link.name}
             </Link>
           ))}
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (!isAuthenticated) navigate('/login');
+              else setIsAddModalOpen(true);
+            }}
+            className="w-full text-left flex items-center space-x-2 px-3 py-2.5 rounded-xl text-sm font-black text-[#00D68F] hover:bg-[#00D68F]/10 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>List a Place</span>
+          </button>
           {isAuthenticated && user?.role === 'admin' && (
             <Link
               to="/admin"
@@ -301,6 +326,17 @@ export const Navbar = () => {
           )}
         </div>
       )}
+
+      {/* Add Place Modal */}
+      <AddPlaceModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => {
+          if (location.pathname === '/search' || location.pathname.startsWith('/profile/')) {
+            window.location.reload();
+          }
+        }}
+      />
     </nav>
   );
 };

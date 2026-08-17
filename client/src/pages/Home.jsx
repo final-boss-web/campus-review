@@ -14,15 +14,20 @@ import {
   MapPin,
   HelpCircle,
   ShieldCheck,
+  Plus,
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
 import LazyImage from '../components/LazyImage.jsx';
 import { getOptimizedImageUrl } from '../utils/imageOptimizer.js';
+import AddPlaceModal from '../components/AddPlaceModal.jsx';
 
 export const Home = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   // Data showcases
   const [topHostels, setTopHostels] = useState([]);
@@ -214,6 +219,36 @@ export const Home = () => {
           </div>
         </section>
       )}
+
+      {/* List Your Place CTA Banner */}
+      <section className="max-w-7xl mx-auto px-6">
+        <div className="bg-[#15152E] border border-[#00D68F] rounded-[32px] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-brutal-blue hover:-translate-x-1 hover:-translate-y-1 transition duration-300">
+          <div className="flex items-start space-x-5">
+            <div className="p-4 bg-[#00D68F]/10 text-[#00D68F] border border-[#00D68F]/30 rounded-2xl">
+              <HomeIcon className="w-8 h-8" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs font-black text-[#00D68F] uppercase tracking-widest flex items-center bg-[#00D68F]/10 px-2.5 py-1 rounded border border-[#00D68F]/30 w-fit">
+                ✨ FOR STUDENTS & OWNERS
+              </span>
+              <h3 className="text-2xl font-black text-white uppercase tracking-tight">Own or know a Hostel, Mess, or Shop?</h3>
+              <p className="text-sm text-slate-305 font-bold">
+                Add your place listing to reach thousands of campus students! Free & instant submission.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              if (!isAuthenticated) navigate('/login');
+              else setIsAddModalOpen(true);
+            }}
+            className="flex items-center space-x-2 py-3.5 px-7 rounded-xl font-black text-black bg-[#00D68F] border border-[#00D68F] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#FFFFFF] transition duration-150 text-xs whitespace-nowrap cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>List Your Place Now</span>
+          </button>
+        </div>
+      </section>
 
       {/* 4. Showcase: Top Rated Hostels */}
       <section className="max-w-7xl mx-auto px-6 space-y-6">
@@ -423,8 +458,12 @@ export const Home = () => {
             })}
           </div>
         </section>
-      )}
-
+      {/* Add Place Modal */}
+      <AddPlaceModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => fetchHomepageData()}
+      />
     </div>
   );
 };

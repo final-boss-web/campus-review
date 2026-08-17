@@ -263,8 +263,13 @@ export const deletePlace = async (req, res, next) => {
       return res.status(404).json({ message: 'Place not found.' });
     }
 
+    // Require admin or ownership to delete
+    if (req.user.role !== 'admin' && place.createdBy?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. You can only delete your own listings.' });
+    }
+
     await Model.findByIdAndDelete(place._id);
-    logger.warn(`Place deleted: ${place.name} (${type}) by admin ${req.user.email}`);
+    logger.warn(`Place deleted: ${place.name} (${type}) by ${req.user.email}`);
 
     // Delete all associated reviews
     await Review.deleteMany({ placeId: place._id, placeType: Model.modelName });

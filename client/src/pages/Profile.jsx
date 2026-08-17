@@ -13,9 +13,16 @@ import {
   Star,
   BookOpen,
   ArrowLeft,
+  Building2,
+  Plus,
+  Edit,
+  Trash2,
+  CheckCircle,
+  Clock,
 } from 'lucide-react';
 import api from '../services/api.js';
 import RatingStars from '../components/RatingStars.jsx';
+import AddPlaceModal from '../components/AddPlaceModal.jsx';
 
 export const Profile = () => {
   const { id } = useParams();
@@ -25,8 +32,13 @@ export const Profile = () => {
   const [reviews, setReviews] = useState([]);
   const [scamReports, setScamReports] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
+  const [listedPlaces, setListedPlaces] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal State for adding/editing place
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editTargetPlace, setEditTargetPlace] = useState(null);
 
   useEffect(() => {
     fetchProfileData();
@@ -40,11 +52,23 @@ export const Profile = () => {
       setReviews(data.reviews);
       setScamReports(data.scamReports);
       setBookmarks(data.bookmarks);
+      setListedPlaces(data.listedPlaces || []);
       setImages(data.images);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteListedPlace = async (type, placeId) => {
+    if (!window.confirm('Are you sure you want to delete this place listing?')) return;
+    try {
+      await api.delete(`/places/${type}/${placeId}`);
+      fetchProfileData();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to delete listing.');
     }
   };
 
@@ -120,6 +144,10 @@ export const Profile = () => {
 
         {/* Stats card counter */}
         <div className="flex space-x-4">
+          <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl text-center min-w-[90px] shadow-sm">
+            <span className="text-2xl font-black text-[#00D68F] block">{listedPlaces.length}</span>
+            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400 mt-0.5 block">Listings</span>
+          </div>
           <div className="p-4 bg-[#0D0D1A] border border-[#2A2A3D] rounded-xl text-center min-w-[90px] shadow-sm">
             <span className="text-2xl font-black text-[#38BDF8] block">{reviews.length}</span>
             <span className="text-[9px] uppercase font-black tracking-widest text-slate-400 mt-0.5 block">Reviews</span>
@@ -201,8 +229,120 @@ export const Profile = () => {
           </div>
         </div>
 
-        {/* Right column: Reviews feed & scam reports feed */}
+        {/* Right column: Listed Places, Reviews feed & scam reports feed */}
         <div className="lg:col-span-2 space-y-6">
+
+          {/* Places Listed section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-lg flex items-center space-x-2 text-white uppercase tracking-tight">
+                <Building2 className="w-5 h-5 text-[#00D68F]" />
+                <span>Listed Places ({listedPlaces.length})</span>
+              </h3>
+              {isOwnProfile && (
+                <button
+                  onClick={() => {
+                    setEditTargetPlace(null);
+                    setIsAddModalOpen(true);
+                  }}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#00D68F] text-black font-black text-xs rounded-xl hover:-translate-x-0.5 hover:-translate-y-0.5 transition cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>List New Place</span>
+                </button>
+              )}
+            </div>
+
+            {listedPlaces.length === 0 ? (
+              <div className="p-8 text-center bg-[#15152E] border border-[#2A2A3D] rounded-2xl text-xs text-slate-400 font-bold space-y-3">
+                <p>No places listed by this user yet.</p>
+                {isOwnProfile && (
+                  <button
+                    onClick={() => {
+                      setEditTargetPlace(null);
+                      setIsAddModalOpen(true);
+                    }}
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#00D68F] text-black font-black text-xs rounded-xl hover:shadow-sm transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>List Your Hostel, Mess or Shop</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {listedPlaces.map((place) => (
+                  <div
+                    key={place._id}
+                    className="p-5 bg-[#15152E] border border-[#2A2A3D] rounded-2xl space-y-3.5 hover:border-white transition duration-200 shadow-sm relative"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={place.coverImage || (place.images?.length > 0 ? place.images[0].url : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=300')}
+                          alt={place.name}
+                          className="w-14 h-14 rounded-xl object-cover border border-[#2A2A3D]"
+                        />
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 uppercase">
+                              {place.type}
+                            </span>
+                            {place.approved ? (
+                              <span className="inline-flex items-center text-[9px] font-black px-2 py-0.5 rounded bg-[#00D68F]/10 text-[#00D68F] border border-[#00D68F]/30 uppercase">
+                                <CheckCircle className="w-3 h-3 mr-1" /> Approved & Live
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center text-[9px] font-black px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 uppercase">
+                                <Clock className="w-3 h-3 mr-1" /> Pending Admin Review
+                              </span>
+                            )}
+                          </div>
+                          <Link
+                            to={`/place/${place.type}/${place.slug || place._id}`}
+                            className="font-black text-sm text-white hover:text-[#38BDF8] hover:underline uppercase block mt-1"
+                          >
+                            {place.name}
+                          </Link>
+                        </div>
+                      </div>
+
+                      {(isOwnProfile || currentUser?.role === 'admin') && (
+                        <div className="flex items-center space-x-2 self-start sm:self-center">
+                          <button
+                            onClick={() => {
+                              setEditTargetPlace(place);
+                              setIsAddModalOpen(true);
+                            }}
+                            className="p-2 bg-[#0D0D1A] border border-[#2A2A3D] text-slate-300 hover:text-white hover:border-white rounded-xl text-xs font-black transition flex items-center space-x-1 cursor-pointer"
+                            title="Edit Listing"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteListedPlace(place.type, place._id)}
+                            className="p-2 bg-[#0D0D1A] border border-[#2A2A3D] text-slate-300 hover:text-[#EF4444] hover:border-[#EF4444] rounded-xl text-xs font-black transition flex items-center space-x-1 cursor-pointer"
+                            title="Delete Listing"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 font-semibold pt-2 border-t border-[#2A2A3D]">
+                      <span>📍 {place.address}</span>
+                      <span>📞 {place.phone}</span>
+                      <span>Rent/Charge: ₹{place.roomRent || place.monthlyCharges || 'Shop'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Reviews authored */}
           <div className="space-y-4">
             <h3 className="font-black text-lg flex items-center space-x-2 text-white uppercase tracking-tight">
@@ -284,6 +424,16 @@ export const Profile = () => {
         </div>
       </div>
 
+      {/* Add Place Modal */}
+      <AddPlaceModal
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditTargetPlace(null);
+        }}
+        initialData={editTargetPlace}
+        onSuccess={() => fetchProfileData()}
+      />
     </div>
   );
 };
