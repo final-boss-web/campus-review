@@ -458,6 +458,8 @@ export const Home = () => {
             })}
           </div>
         </section>
+      )}
+
       {/* Add Place Modal */}
       <AddPlaceModal
         isOpen={isAddModalOpen}
